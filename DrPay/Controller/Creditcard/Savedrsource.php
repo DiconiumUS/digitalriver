@@ -45,7 +45,6 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
-            $this->_logger->info("Cart Created : ".json_encode($cartResult));
             if ($this->getRequest()->getParam('source_id')) {
                 $source_id = $this->getRequest()->getParam('source_id');
                 $paymentResult = $this->helper->applyQuotePayment($source_id);

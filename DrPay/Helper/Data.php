@@ -182,7 +182,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $apikey = $this->getDrApiKey();
             $locale = $this->getLocale();
             $drBaseUrl = $this->getDrBaseUrl();
-            if ($apikey && $locale && $drBaseUrl) {
+            if ($apikey && $locale && $drBaseUrl && $firstname) {
                 $url = $this->getDrBaseUrl()."v1/shoppers?apiKey=".$apikey."&format=json";
                 $data = "<shopper><firstName>".$firstname."</firstName><lastName>".$lastname .
                 "</lastName><externalReferenceId>".$username."</externalReferenceId><username>" .
@@ -237,8 +237,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $token = '';
         $this->_logger->info("Token: ".$accessToken);
         if ($accessToken) {
-            try {
-                $this->deleteDrCartItems($accessToken);
+            try {                
                 $testorder = $this->getIsTestOrder();
                 if ($testorder) {
                     $url = $this->getDrBaseUrl() .
@@ -391,10 +390,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $shippingDetails["shippingOffer"]["overrideDiscount"]["discountType"] = "amount";
                     $data["cart"]["appliedOrderOffers"] = $shippingDetails;
                 }
-                $this->_logger->info("Request: ".json_encode($data));
                 $result = [];
-                if ($accessToken && $this->getDrBaseUrl()) {
-                    $data = $this->encryptRequest(json_encode($data));
+                if ($this->getDrBaseUrl()) {
+                    $original_data = $data;					
+					$data = $this->encryptRequest(json_encode($data));
+					$checksum = sha1(base64_encode($data));					
+					$existingChecksum = $this->session->getSessionCheckSum();
+					if(!empty($existingChecksum) && $checksum == $existingChecksum){
+						if ($return){
+							return true;
+						}else{
+							return;
+						}
+					}
+
+					$this->_logger->info("Request: ".json_encode($original_data));
+					$this->session->setSessionCheckSum($checksum);					
+					$this->deleteDrCartItems($accessToken);                    
                     $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                     $this->curl->addHeader("Content-Type", "application/json");
                     $this->curl->addHeader("Authorization", "Bearer ".$accessToken);
@@ -405,6 +417,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 if (isset($result["errors"])) {
                     $this->session->setDrQuoteError(true);
+					$this->session->setSessionCheckSum('');
                     if ($return) {
                         return $result;
                     } else {
