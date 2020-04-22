@@ -398,9 +398,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$existingChecksum = $this->session->getSessionCheckSum();
 					if(!empty($existingChecksum) && $checksum == $existingChecksum){
 						if ($return){
-							return true;
+							//return true;
 						}else{
-							return;
+							//return;
 						}
 					}
 
