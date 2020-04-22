@@ -398,9 +398,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$existingChecksum = $this->session->getSessionCheckSum();
 					if(!empty($existingChecksum) && $checksum == $existingChecksum){
 						if ($return){
-							//return true;
+							$drresult = $this->session->getDrResult();
+							if($drresult){
+								$result = json_decode(base64_decode($drresult), true);
+								return $result;
+							}
 						}else{
-							//return;
+							return;
 						}
 					}
 
@@ -414,6 +418,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $result = $this->curl->getBody();
                     $result = json_decode($result, true);
                     $this->_logger->info("Response : ".json_encode($result));
+					$this->session->setDrResult(base64_encode(json_encode($result)));
                 }
                 if (isset($result["errors"])) {
                     $this->session->setDrQuoteError(true);

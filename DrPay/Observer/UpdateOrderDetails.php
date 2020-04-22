@@ -60,18 +60,16 @@ class UpdateOrderDetails implements ObserverInterface
 		$quote = $observer->getEvent()->getQuote();
 		$result = $observer->getEvent()->getResult();
 		$cartresult = $observer->getEvent()->getCartResult();
-                $paymentResult = $observer->getEvent()->getPaymentResult();                
+        $paymentResult = $observer->getEvent()->getPaymentResult();                
 		//print_r($result);die;
 		if(isset($result["submitCart"]["order"]["id"])){
-                    // Update Order's Shipping Address details
-                    if(!empty($paymentResult)) {
-                        $shippingAddress = $this->helper->getPaymentShippingAddress($paymentResult);
-                        $this->logger->info('UpdateOrderDetails: '.json_encode($shippingAddress));
-                        if(!empty($shippingAddress)) {
-                            // Set shipping address data
-                            $order->getShippingAddress()->addData($shippingAddress);
-                        } // end: if
-                    } // end: if
+			// Update Order's Shipping Address details
+			if(!empty($paymentResult)) {
+				$shippingAddress = $this->helper->getPaymentShippingAddress($paymentResult);
+				if(!empty($shippingAddress)) {
+					$order->getShippingAddress()->addData($shippingAddress);
+				} // end: if
+			} // end: if
                     
 			if(isset($result["submitCart"]['paymentMethod']['wireTransfer'])){
 				$paymentData = $result["submitCart"]['paymentMethod']['wireTransfer'];
@@ -129,6 +127,7 @@ class UpdateOrderDetails implements ObserverInterface
 			}
 			$order->save();
 			$this->session->setDrAccessToken('');
+			$this->session->setDrResult('');
 		}
     }
 
