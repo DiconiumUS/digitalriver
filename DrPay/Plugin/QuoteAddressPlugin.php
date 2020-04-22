@@ -51,7 +51,7 @@ class QuoteAddressPlugin
 			$quote = $subject->getQuote();
             if (!$quote->isVirtual()) {
                 //Create the cart in DR
-                $this->drHelper->createFullCartInDr($quote);
+                //$this->drHelper->createFullCartInDr($quote);
             }
         }
         return $result;
