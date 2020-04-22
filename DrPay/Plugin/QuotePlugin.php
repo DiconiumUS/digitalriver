@@ -50,7 +50,7 @@ class QuotePlugin
         if ($enableDrPayValue) {
             if (!$subject->isVirtual()) {
                 //Create the cart in DR
-                $this->drHelper->createFullCartInDr($subject);
+                //$this->drHelper->createFullCartInDr($subject);
             }
         }
         return $result;
