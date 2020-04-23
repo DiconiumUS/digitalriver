@@ -64,7 +64,7 @@ class UpdateOrderDetails implements ObserverInterface
 		//print_r($result);die;
 		if(isset($result["submitCart"]["order"]["id"])){
 			// Update Order's Shipping Address details
-			if(!empty($paymentResult)) {
+			if(!empty($paymentResult) && !$quote->isVirtual()) {
 				$shippingAddress = $this->helper->getPaymentShippingAddress($paymentResult);
 				if(!empty($shippingAddress)) {
 					$order->getShippingAddress()->addData($shippingAddress);

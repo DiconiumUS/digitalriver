@@ -756,7 +756,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             foreach ($lineItems as $item) {
                 $items['item'][] = 
                     ["requisitionID" => $order->getDrOrderId(),
-                        "noticeExternalReferenceID" => $order->getQuoteId(),
+                        "noticeExternalReferenceID" => $order->getIncrementId(),
                         "lineItemID" => $item['lineitemid'],
                         "fulfillmentCompanyID" => $this->getCompanyId(),
                         "electronicFulfillmentNoticeItems" => [
