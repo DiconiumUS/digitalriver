@@ -1046,7 +1046,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $returnAddress  = [];       
         $this->_logger->info('ShipResult: '.json_encode($shipResult));
         $paymentShipAds = $shipResult['cart']['paymentMethod'];
-
+        
         if(!empty($paymentShipAds[$paymentShipAds['type']]) && !empty($paymentShipAds[$paymentShipAds['type']]['shipping'])) {
             // Data = {recipient=Sekar German, phoneNumber=408-375-6883, address={line1=Test street, city=Melbourne, state=Vic, country=AU, postalCode=3000}}
             $res = explode('{', $paymentShipAds[$paymentShipAds['type']]['shipping']);
@@ -1067,28 +1067,34 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 } // end: if
             });
             
-            // Get Region deails
-            $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
+            $addressFields = ['recipient', 'line1', 'state', 'country', 'postalCode', 'phoneNumber'];
             
-            $street = (!empty($shippingAds['line1'])) ? $shippingAds['line1'] : null;
-            $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
-            $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+            if(count(array_diff($addressFields, array_keys($shippingAds))) == 0) {
+                // Get Region details
+                $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
 
-            $street = trim($street);
-            $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
-            $name   = explode(' ', $shippingAds['recipient']);
-            
-            $returnAddress = [
-                'firstname' => (!empty($name[0])) ? trim($name[0]) : null,
-                'lastname'  => (!empty($name[1])) ? trim($name[1]) : null,
-                'street'    => $street,
-                'city'      => $shippingAds['city'],
-                'postcode'  => $shippingAds['postalCode'],
-                'country_id' => $shippingAds['country'],
-                'region'    => !empty($region['name']) ? $region['name'] : null,
-                'region_id'  => !empty($region['region_id']) ? $region['region_id'] : null,
-                'telephone' => $phone
-            ];            
+                $street = $shippingAds['line1'];
+                $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
+                $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+
+                $street = trim($street);
+                $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
+                $name   = explode(' ', $shippingAds['recipient']);
+
+                $returnAddress = [
+                    'firstname'     => (!empty($name[0])) ? trim($name[0]) : null,
+                    'lastname'      => (!empty($name[1])) ? trim($name[1]) : null,
+                    'street'        => $street,
+                    'city'          => $shippingAds['city'],
+                    'postcode'      => $shippingAds['postalCode'],
+                    'country_id'    => $shippingAds['country'],
+                    'region'        => !empty($region['name']) ? $region['name'] : null,
+                    'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
+                    'telephone'     => $phone
+                ];
+            } else {
+                $this->_logger->info('Mandatory Payment Details missing');
+            }            
         } // end: if
                 
         return $returnAddress;
