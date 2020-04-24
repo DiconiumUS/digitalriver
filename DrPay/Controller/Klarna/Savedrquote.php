@@ -66,6 +66,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 ];
             }
             $address = $quote->getShippingAddress();
+            $billingAddress = $quote->getBillingAddress();
             if ($quote->isVirtual()) {
                 $address = $quote->getBillingAddress();
             }
@@ -116,6 +117,25 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                         ],
                     ];
             }
+
+			$street = $billingAddress->getStreet();
+			if (isset($street[0])) {
+				$street1 = $street[0];
+			} else {
+				$street1 = "";
+			}
+			if (isset($street[1])) {
+				$street2 = $street[1];
+			} else {
+				$street2 = "";
+			}
+			$state = 'na';
+			$regionName = $billingAddress->getRegion();
+			if ($regionName) {
+				$countryId = $billingAddress->getCountryId();
+				$region = $this->regionModel->loadByName($regionName, $countryId);
+				$state = $region->getCode();
+			}
         
             //Prepare the payload and return in response for DRJS klarna payload
             $payload['payload'] = [
@@ -123,16 +143,16 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 'amount' => round($quote->getGrandTotal(), 2),
                 'currency' => $quote->getQuoteCurrencyCode(),
 				'owner' => [
-					'firstName' => $address->getFirstname(),
-					'lastName' => $address->getLastname(),
+					'firstName' => $billingAddress->getFirstname(),
+					'lastName' => $billingAddress->getLastname(),
 					'email' => $quote->getCustomerEmail() ? $quote->getCustomerEmail() : $this->_checkoutSession->getGuestCustomerEmail(),
-					'phoneNumber' => $address->getTelephone(),
+					'phoneNumber' => $billingAddress->getTelephone(),
 					'address' =>  [
 						'line1' => $street1,
-						'city' => (null !== $address->getCity())?$address->getCity():'na',
+						'city' => (null !== $billingAddress->getCity())?$billingAddress->getCity():'na',
 						'state' => $state,
-						'country' => $address->getCountryId(),
-						'postalCode' => $address->getPostcode(),
+						'country' => $billingAddress->getCountryId(),
+						'postalCode' => $billingAddress->getPostcode(),
 					],
 									],
                 'klarnaCredit' =>  [
