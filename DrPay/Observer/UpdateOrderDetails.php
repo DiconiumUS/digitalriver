@@ -127,7 +127,13 @@ class UpdateOrderDetails implements ObserverInterface
 			}
 			$order->save();
 			$this->session->setDrAccessToken('');
+			$this->session->setSessionCheckSum('');
 			$this->session->setDrResult('');
+			$this->session->setGuestCustomerEmail('');
+			$this->session->setDrQuoteId('');
+			$this->session->setDrTax('');
+			$this->session->setDrShipping('');
+			$this->session->setMagentoAppliedTax('');
 		}
     }
 

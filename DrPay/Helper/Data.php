@@ -423,6 +423,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 if (isset($result["errors"])) {
                     $this->session->setDrQuoteError(true);
 					$this->session->setSessionCheckSum('');
+					$this->session->setDrAccessToken('');
                     if ($return) {
                         return $result;
                     } else {

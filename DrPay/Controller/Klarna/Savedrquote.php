@@ -29,12 +29,14 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Directory\Model\Region $regionModel,
 		\Magento\Customer\Model\AddressFactory $addressFactory,
-        \Digitalriver\DrPay\Helper\Data $helper
+        \Digitalriver\DrPay\Helper\Data $helper,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->helper =  $helper;
         $this->_checkoutSession = $checkoutSession;
         $this->regionModel = $regionModel;
 		$this->_addressFactory = $addressFactory;
+		$this->scopeConfig = $scopeConfig;
         parent::__construct($context);
     }
     /**
@@ -57,11 +59,12 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
             $itemPrice = 0;
             $taxAmnt = 0;
             $shipAmnt = 0;
+			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             foreach ($quote->getAllVisibleItems() as $item) {
                 $itemsArr[] = [
                     'name' => $item->getName(),
                     'quantity' => $item->getQty(),
-                    'unitAmount' => round($item->getCalculationPrice(), 2),
+                    'unitAmount' => $tax_inclusive ? $item->getPriceInclTax() : round($item->getCalculationPrice(), 2),
                     'taxRate' => 0,
                 ];
             }
@@ -82,6 +85,9 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 					}
 				}
                 $shipAmnt = $address->getShippingAmount() ? $address->getShippingAmount() : 0;
+				if($tax_inclusive){
+					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;				
+				}
                 $taxAmnt = $address->getTaxAmount() ? $address->getTaxAmount() : 0;
                 $shipping =  [];
                 $street = $address->getStreet();
@@ -154,7 +160,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 						'country' => $billingAddress->getCountryId(),
 						'postalCode' => $billingAddress->getPostcode(),
 					],
-									],
+				],
                 'klarnaCredit' =>  [
 					"setPaidBefore" => true,
                     'returnUrl' => $returnurl,

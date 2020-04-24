@@ -177,7 +177,12 @@ function loadScriptWire(url, callback){
 			$('.payment_info_text').css("display","block");
 	        if($('#applepay-element').length){ 
 				document.getElementById('applepay-element').style.display = 'none';
-			} 
+			} 			
+			if(window.checkoutConfig.quoteData.is_virtual){
+				jQuery(".billing-address-details .action-edit-address").css("display","block");
+			}else{
+				jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
+			}
 		});		
 	}	
 	function continueWireTransfer() {
@@ -207,5 +212,10 @@ function loadScriptWire(url, callback){
 		jQuery(".checkout-index-index h1.page-title .base").html(checkoutTranslate);
 		jQuery('.step-content').css('background','#e6e6e6');
 		jQuery('.payment-method-content').css('margin-bottom','50px');
+		if(window.checkoutConfig.quoteData.is_virtual){
+			jQuery(".billing-address-details .action-edit-address").css("display","none");
+		}else{
+			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
+		}
 	}
 </script>

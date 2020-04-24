@@ -152,6 +152,11 @@ function loadScriptDebit(url, callback){
                             jQuery(".checkout-index-index h1.page-title .base").html('Checkout');
                             jQuery('.step-content').css('background','#e6e6e6');
                             jQuery('.payment-method-content').css('margin-bottom','50px');
+							if(window.checkoutConfig.quoteData.is_virtual){
+								jQuery(".billing-address-details .action-edit-address").css("display","none");
+							}else{
+								jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
+							}
                          }
                     }
                 });
@@ -180,9 +185,15 @@ function loadScriptDebit(url, callback){
             $('.checkout-tabs .nav-pills li:nth-child(1)').addClass('active');
             $('.step-content').css('background','none');
             $('.payment-method-content').css('margin-bottom','10px');    
+			$(".payment-methods .payment-group .payment-method .checkout").css("display","none");
             if($('#applepay-element').length){ 
                 document.getElementById('applepay-element').style.display = 'none';
             } 
+			if(window.checkoutConfig.quoteData.is_virtual){
+				$(".billing-address-details .action-edit-address").css("display","block");
+			}else{
+				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
+			}
         });        
     }    
 </script>
