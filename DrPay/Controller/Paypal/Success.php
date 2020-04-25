@@ -82,49 +82,6 @@ class Success extends \Magento\Framework\App\Action\Action
 			 */
 			$resultRedirect = $this->resultRedirectFactory->create();
 			if ($this->getRequest()->getParam('sourceId')) {
-                            // Temp Checking
-                            //----------------------------------------------------------------------------->
-                            // "last successful quote"
-                            $quoteId = $quote->getId();
-                            $this->checkoutSession->setLastQuoteId($quoteId)->setLastSuccessQuoteId($quoteId);
-                            if(!$quote->getCustomerId()){
-                                    $quote->setCustomerId(null)
-                                            ->setCustomerEmail($quote->getBillingAddress()->getEmail())
-                                            ->setCustomerIsGuest(true)
-                                            ->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
-                            }
-                            $quote->collectTotals();
-                            try{                                        
-                                    // Check quote has any errors
-                                    $isValidQuote = $this->helper->validateQuote($quote);
-
-                                    if(!empty($isValidQuote)){
-                                            $order = $this->quoteManagement->submit($quote);
-                                            if ($order) {
-                                                    $this->checkoutSession->setLastOrderId($order->getId())
-                                                                    ->setLastRealOrderId($order->getIncrementId())
-                                                                    ->setLastOrderStatus($order->getStatus());
-                                            } else{
-                                                    //$this->helper->cancelDROrder($quote, $result);
-                                                    $this->messageManager->addError(__('Unable to Place Order!! Payment has been failed'));
-                                                    $this->_redirect('checkout/cart');
-                                                    return;						
-                                            }
-
-                                            //$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult, 'payment_result' => $paymentResult]);
-                                            $this->_redirect('checkout/onepage/success', array('_secure'=>true));
-                                            return;
-                                    } else {
-                                            //$this->helper->cancelDROrder($quote, $result);
-                                            $this->_redirect('checkout/cart');
-                                            return;	
-                                    } // end: if
-                            } catch (Exception $ex) {
-                                    //$this->helper->cancelDROrder($quote, $result);
-                                    $this->_redirect('checkout/cart');
-                                    return;
-                            } // end: try
-                            //---------------------------------------------------------------------------------->
 				$source_id = $this->getRequest()->getParam('sourceId');
 				$accessToken = $this->checkoutSession->getDrAccessToken();
 				$paymentResult = $this->helper->applyQuotePayment($source_id);
@@ -173,7 +130,7 @@ class Success extends \Magento\Framework\App\Action\Action
                                             $this->helper->cancelDROrder($quote, $result);
                                             $this->_redirect('checkout/cart');
                                             return;
-                                        } catch (Exception $ex) {
+					} catch (Exception $ex) {
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
 						return;
