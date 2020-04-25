@@ -232,6 +232,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 			}
         } else {
             $accessToken = $this->convertTokenToFullAccessToken();
+			$this->checkDrAccessTokenValidation($accessToken);
             $this->session->setDrAccessToken($accessToken);
         }
         $token = '';
