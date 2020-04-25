@@ -52,7 +52,7 @@ class CreateDrOrder implements ObserverInterface
         $order = $observer['order'];
         $quote = $observer['quote'];
         if ($quote->getPayment()->getMethod() == \Digitalriver\DrPay\Model\CreditCard::PAYMENT_METHOD_CREDITCARD_CODE || $quote->getPayment()->getMethod() == \Digitalriver\DrPay\Model\ApplePay::PAYMENT_METHOD_APPLE_PAY_CODE) {
-            $result = $this->helper->createFullCartInDr($quote, true);
+            $result = $this->helper->createFullCartInDr($quote, 1);
             $accessToken = $this->session->getDrAccessToken();
             if ($this->session->getDrQuoteError()) {
                 throw new CouldNotSaveException(__('Unable to Place Order'));

@@ -160,6 +160,12 @@ function loadScriptApple(url, callback){
         jQuery(".payment-methods .payment-group .payment-method .checkout").css("display","none");
         jQuery(".payment-methods .payment-group .payment-method #drpay-payment-form .checkout").css("display","block");
         jQuery('.payment_info_text').css("display","block");
+		if(window.checkoutConfig.quoteData.is_virtual){
+			jQuery(".billing-address-details .action-edit-address").css("display","none");
+		}else{
+			jQuery(".billing-address-details .action-edit-address").css("display","none");
+			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
+		}
 
     } 
     function editApplePay(){ 
@@ -187,6 +193,12 @@ function loadScriptApple(url, callback){
             $('.payment-method-content').css('margin-bottom','10px');
             $('.payment_info_text').css("display","none");
             $('#applepay-element').css("display","none");
+			if(window.checkoutConfig.quoteData.is_virtual){
+				$(".billing-address-details .action-edit-address").css("display","block");
+			}else{
+				$(".billing-address-details .action-edit-address").css("display","block");
+				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
+			}
         });
     }    
 </script>

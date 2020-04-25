@@ -120,7 +120,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
             //Prepare the payload and return in response for DRJS paypal payload
             $payload['payload'] = [
                 'type' => 'payPal',
-                'amount' => (int)round($quote->getGrandTotal()),
+                'amount' => round($quote->getGrandTotal(), 2),
                 'currency' => $quote->getQuoteCurrencyCode(),
                 'payPal' =>  [
                     'returnUrl' => $returnurl,

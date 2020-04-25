@@ -85,31 +85,40 @@ class Success extends \Magento\Framework\App\Action\Action
 							->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
 					}
 					$quote->collectTotals();
-					
-					// Check quote has any errors
-					$isValidQuote = $this->helper->validateQuote($quote);
+					try{                     					
+						// Check quote has any errors
+						$isValidQuote = $this->helper->validateQuote($quote);
 
-					if(!empty($isValidQuote)){
-						$order = $this->quoteManagement->submit($quote);
-						if ($order) {
-							$this->checkoutSession->setLastOrderId($order->getId())
-									->setLastRealOrderId($order->getIncrementId())
-									->setLastOrderStatus($order->getStatus());
-						} else{
+						if(!empty($isValidQuote)){
+							$order = $this->quoteManagement->submit($quote);
+							if ($order) {
+								$this->checkoutSession->setLastOrderId($order->getId())
+										->setLastRealOrderId($order->getIncrementId())
+										->setLastOrderStatus($order->getStatus());
+							} else{
+								$this->helper->cancelDROrder($quote, $result);
+								$this->messageManager->addError(__('Unable to Place Order!! Payment has been failed'));
+								$this->_redirect('checkout/cart');
+								return;						
+							}
+
+							$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
+							$this->_redirect('checkout/onepage/success', array('_secure'=>true));
+							return;
+						} else {
 							$this->helper->cancelDROrder($quote, $result);
-							$this->messageManager->addError(__('Unable to Place Order!! Payment has been failed'));
 							$this->_redirect('checkout/cart');
-							return;						
-						}
-
-						$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
-						$this->_redirect('checkout/onepage/success', array('_secure'=>true));
-						return;
-					} else {
+							return;	
+						} // end: if
+					} catch (\Magento\Framework\Exception\LocalizedException $ex) {
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
-						return;	
-					} // end: if
+						return;
+					} catch (Exception $ex) {
+						$this->helper->cancelDROrder($quote, $result);
+						$this->_redirect('checkout/cart');
+						return;
+					} // end: try
 				}
 			}
 		}

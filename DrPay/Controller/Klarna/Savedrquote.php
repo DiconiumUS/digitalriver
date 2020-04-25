@@ -29,12 +29,14 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Directory\Model\Region $regionModel,
 		\Magento\Customer\Model\AddressFactory $addressFactory,
-        \Digitalriver\DrPay\Helper\Data $helper
+        \Digitalriver\DrPay\Helper\Data $helper,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->helper =  $helper;
         $this->_checkoutSession = $checkoutSession;
         $this->regionModel = $regionModel;
 		$this->_addressFactory = $addressFactory;
+		$this->scopeConfig = $scopeConfig;
         parent::__construct($context);
     }
     /**
@@ -57,15 +59,17 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
             $itemPrice = 0;
             $taxAmnt = 0;
             $shipAmnt = 0;
+			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             foreach ($quote->getAllVisibleItems() as $item) {
                 $itemsArr[] = [
                     'name' => $item->getName(),
                     'quantity' => $item->getQty(),
-                    'unitAmount' => round($item->getCalculationPrice(), 2),
+                    'unitAmount' => $tax_inclusive ? $item->getPriceInclTax() : round($item->getCalculationPrice(), 2),
                     'taxRate' => 0,
                 ];
             }
             $address = $quote->getShippingAddress();
+            $billingAddress = $quote->getBillingAddress();
             if ($quote->isVirtual()) {
                 $address = $quote->getBillingAddress();
             }
@@ -81,6 +85,9 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 					}
 				}
                 $shipAmnt = $address->getShippingAmount() ? $address->getShippingAmount() : 0;
+				if($tax_inclusive){
+					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;				
+				}
                 $taxAmnt = $address->getTaxAmount() ? $address->getTaxAmount() : 0;
                 $shipping =  [];
                 $street = $address->getStreet();
@@ -116,6 +123,25 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                         ],
                     ];
             }
+
+			$street = $billingAddress->getStreet();
+			if (isset($street[0])) {
+				$street1 = $street[0];
+			} else {
+				$street1 = "";
+			}
+			if (isset($street[1])) {
+				$street2 = $street[1];
+			} else {
+				$street2 = "";
+			}
+			$state = 'na';
+			$regionName = $billingAddress->getRegion();
+			if ($regionName) {
+				$countryId = $billingAddress->getCountryId();
+				$region = $this->regionModel->loadByName($regionName, $countryId);
+				$state = $region->getCode();
+			}
         
             //Prepare the payload and return in response for DRJS klarna payload
             $payload['payload'] = [
@@ -123,18 +149,18 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 'amount' => round($quote->getGrandTotal(), 2),
                 'currency' => $quote->getQuoteCurrencyCode(),
 				'owner' => [
-					'firstName' => $address->getFirstname(),
-					'lastName' => $address->getLastname(),
+					'firstName' => $billingAddress->getFirstname(),
+					'lastName' => $billingAddress->getLastname(),
 					'email' => $quote->getCustomerEmail() ? $quote->getCustomerEmail() : $this->_checkoutSession->getGuestCustomerEmail(),
-					'phoneNumber' => $address->getTelephone(),
+					'phoneNumber' => $billingAddress->getTelephone(),
 					'address' =>  [
 						'line1' => $street1,
-						'city' => (null !== $address->getCity())?$address->getCity():'na',
+						'city' => (null !== $billingAddress->getCity())?$billingAddress->getCity():'na',
 						'state' => $state,
-						'country' => $address->getCountryId(),
-						'postalCode' => $address->getPostcode(),
+						'country' => $billingAddress->getCountryId(),
+						'postalCode' => $billingAddress->getPostcode(),
 					],
-									],
+				],
                 'klarnaCredit' =>  [
 					"setPaidBefore" => true,
                     'returnUrl' => $returnurl,

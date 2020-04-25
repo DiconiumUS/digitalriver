@@ -100,6 +100,12 @@ function loadScriptKlarna(url, callback){
 			$('.checkout-tabs .nav-pills li:nth-child(2)').addClass('active');
 			$('.step-content').css('background','#e6e6e6');
 			$('.payment-method-content').css('margin-bottom','50px');
+			if(window.checkoutConfig.quoteData.is_virtual){
+				$(".billing-address-details .action-edit-address").css("display","none");
+			}else{				
+				$(".billing-address-details .action-edit-address").css("display","none");
+				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
+			}
 		});		
 	}	
 	function displayKlarnaForm(){
@@ -112,7 +118,7 @@ function loadScriptKlarna(url, callback){
 		jQuery("#payment-data_klarna").css("display","none");
 		jQuery("#payment-data_klarna").removeClass('payment-active');
 		jQuery(".payment-methods .payment-group .payment-method .payment-method-instruction").css("display","block");
-		 jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block");
+		jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block");
 		jQuery(".payment-methods .payment-group .payment-method .klarna-btn-first").css("display","block");
 		 jQuery(".payment-methods .payment-group .payment-method .klarna-btn-first .checkout").css("display","block");
 		jQuery('.checkout-tabs .nav-pills li').removeClass('active');
@@ -121,5 +127,11 @@ function loadScriptKlarna(url, callback){
 		jQuery(".payment-methods .payment-group .payment-method .checkout").css("display","none");
 		jQuery(".payment-methods .payment-group .payment-method #drpay-creditcard-form .checkout").css("display","block");		
 		jQuery('.step-content').css('background','rgba(0,0,0,0)');
+		if(window.checkoutConfig.quoteData.is_virtual){
+			jQuery(".billing-address-details .action-edit-address").css("display","block");
+		}else{			
+			jQuery(".billing-address-details .action-edit-address").css("display","block");
+			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
+		}
 	}	
 </script>

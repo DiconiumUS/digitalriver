@@ -182,7 +182,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $apikey = $this->getDrApiKey();
             $locale = $this->getLocale();
             $drBaseUrl = $this->getDrBaseUrl();
-            if ($apikey && $locale && $drBaseUrl) {
+            if ($apikey && $locale && $drBaseUrl && $firstname) {
                 $url = $this->getDrBaseUrl()."v1/shoppers?apiKey=".$apikey."&format=json";
                 $data = "<shopper><firstName>".$firstname."</firstName><lastName>".$lastname .
                 "</lastName><externalReferenceId>".$username."</externalReferenceId><username>" .
@@ -232,13 +232,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 			}
         } else {
             $accessToken = $this->convertTokenToFullAccessToken();
+			$this->checkDrAccessTokenValidation($accessToken);
             $this->session->setDrAccessToken($accessToken);
         }
         $token = '';
         $this->_logger->info("Token: ".$accessToken);
         if ($accessToken) {
-            try {
-                $this->deleteDrCartItems($accessToken);
+            try {                
                 $testorder = $this->getIsTestOrder();
                 if ($testorder) {
                     $url = $this->getDrBaseUrl() .
@@ -391,10 +391,27 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $shippingDetails["shippingOffer"]["overrideDiscount"]["discountType"] = "amount";
                     $data["cart"]["appliedOrderOffers"] = $shippingDetails;
                 }
-                $this->_logger->info("Request: ".json_encode($data));
                 $result = [];
-                if ($accessToken && $this->getDrBaseUrl()) {
-                    $data = $this->encryptRequest(json_encode($data));
+                if ($this->getDrBaseUrl()) {
+                    $original_data = $data;					
+					$data = $this->encryptRequest(json_encode($data));
+					$checksum = sha1(base64_encode($data));					
+					$existingChecksum = $this->session->getSessionCheckSum();
+					if(!empty($existingChecksum) && $checksum == $existingChecksum){
+						if ($return){
+							$drresult = $this->session->getDrResult();
+							if($drresult){
+								$result = json_decode(base64_decode($drresult), true);
+								return $result;
+							}
+						}else{
+							return;
+						}
+					}
+
+					$this->_logger->info("Request: ".json_encode($original_data));
+					$this->session->setSessionCheckSum($checksum);					
+					$this->deleteDrCartItems($accessToken);                    
                     $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                     $this->curl->addHeader("Content-Type", "application/json");
                     $this->curl->addHeader("Authorization", "Bearer ".$accessToken);
@@ -402,9 +419,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $result = $this->curl->getBody();
                     $result = json_decode($result, true);
                     $this->_logger->info("Response : ".json_encode($result));
+					$this->session->setDrResult(base64_encode(json_encode($result)));
                 }
                 if (isset($result["errors"])) {
                     $this->session->setDrQuoteError(true);
+					$this->session->unsSessionCheckSum();
+					$this->session->unsDrAccessToken();
                     if ($return) {
                         return $result;
                     } else {
@@ -738,7 +758,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             foreach ($lineItems as $item) {
                 $items['item'][] = 
                     ["requisitionID" => $order->getDrOrderId(),
-                        "noticeExternalReferenceID" => $order->getQuoteId(),
+                        "noticeExternalReferenceID" => $order->getIncrementId(),
                         "lineItemID" => $item['lineitemid'],
                         "fulfillmentCompanyID" => $this->getCompanyId(),
                         "electronicFulfillmentNoticeItems" => [
@@ -1028,7 +1048,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $returnAddress  = [];       
         $this->_logger->info('ShipResult: '.json_encode($shipResult));
         $paymentShipAds = $shipResult['cart']['paymentMethod'];
-
+        
         if(!empty($paymentShipAds[$paymentShipAds['type']]) && !empty($paymentShipAds[$paymentShipAds['type']]['shipping'])) {
             // Data = {recipient=Sekar German, phoneNumber=408-375-6883, address={line1=Test street, city=Melbourne, state=Vic, country=AU, postalCode=3000}}
             $res = explode('{', $paymentShipAds[$paymentShipAds['type']]['shipping']);
@@ -1049,28 +1069,34 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 } // end: if
             });
             
-            // Get Region deails
-            $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
+            $addressFields = ['recipient', 'line1', 'state', 'country', 'postalCode', 'phoneNumber'];
             
-            $street = (!empty($shippingAds['line1'])) ? $shippingAds['line1'] : null;
-            $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
-            $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+            if(count(array_diff($addressFields, array_keys($shippingAds))) == 0) {
+                // Get Region details
+                $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
 
-            $street = trim($street);
-            $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
-            $name   = explode(' ', $shippingAds['recipient']);
-            
-            $returnAddress = [
-                'firstname' => (!empty($name[0])) ? trim($name[0]) : null,
-                'lastname'  => (!empty($name[1])) ? trim($name[1]) : null,
-                'street'    => $street,
-                'city'      => $shippingAds['city'],
-                'postcode'  => $shippingAds['postalCode'],
-                'country_id' => $shippingAds['country'],
-                'region'    => !empty($region['name']) ? $region['name'] : null,
-                'region_id'  => !empty($region['region_id']) ? $region['region_id'] : null,
-                'telephone' => $phone
-            ];            
+                $street = $shippingAds['line1'];
+                $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
+                $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+
+                $street = trim($street);
+                $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
+                $name   = explode(' ', $shippingAds['recipient']);
+
+                $returnAddress = [
+                    'firstname'     => (!empty($name[0])) ? trim($name[0]) : null,
+                    'lastname'      => (!empty($name[1])) ? trim($name[1]) : null,
+                    'street'        => $street,
+                    'city'          => $shippingAds['city'],
+                    'postcode'      => $shippingAds['postalCode'],
+                    'country_id'    => $shippingAds['country'],
+                    'region'        => !empty($region['name']) ? $region['name'] : null,
+                    'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
+                    'telephone'     => $phone
+                ];
+            } else {
+                $this->_logger->info('Mandatory Payment Details missing');
+            }            
         } // end: if
                 
         return $returnAddress;
