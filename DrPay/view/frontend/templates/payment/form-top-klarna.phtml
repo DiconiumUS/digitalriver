@@ -102,7 +102,8 @@ function loadScriptKlarna(url, callback){
 			$('.payment-method-content').css('margin-bottom','50px');
 			if(window.checkoutConfig.quoteData.is_virtual){
 				$(".billing-address-details .action-edit-address").css("display","none");
-			}else{
+			}else{				
+				$(".billing-address-details .action-edit-address").css("display","none");
 				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
 			}
 		});		
@@ -128,7 +129,8 @@ function loadScriptKlarna(url, callback){
 		jQuery('.step-content').css('background','rgba(0,0,0,0)');
 		if(window.checkoutConfig.quoteData.is_virtual){
 			jQuery(".billing-address-details .action-edit-address").css("display","block");
-		}else{
+		}else{			
+			jQuery(".billing-address-details .action-edit-address").css("display","block");
 			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
 		}
 	}	

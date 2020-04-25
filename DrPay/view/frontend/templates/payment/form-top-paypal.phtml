@@ -103,6 +103,7 @@ function loadScriptPayPal(url, callback){
 			if(window.checkoutConfig.quoteData.is_virtual){
 				$(".billing-address-details .action-edit-address").css("display","none");
 			}else{
+				$(".billing-address-details .action-edit-address").css("display","none");
 				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
 			}
 		});		
@@ -129,6 +130,7 @@ function loadScriptPayPal(url, callback){
 		if(window.checkoutConfig.quoteData.is_virtual){
 			jQuery(".billing-address-details .action-edit-address").css("display","block");
 		}else{
+			jQuery(".billing-address-details .action-edit-address").css("display","block");
 			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
 		}
 	}	

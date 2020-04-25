@@ -179,9 +179,10 @@ function loadScriptWire(url, callback){
 				document.getElementById('applepay-element').style.display = 'none';
 			} 			
 			if(window.checkoutConfig.quoteData.is_virtual){
-				jQuery(".billing-address-details .action-edit-address").css("display","block");
+				$(".billing-address-details .action-edit-address").css("display","block");
 			}else{
-				jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
+				$(".billing-address-details .action-edit-address").css("display","none");
+				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
 			}
 		});		
 	}	
@@ -215,6 +216,7 @@ function loadScriptWire(url, callback){
 		if(window.checkoutConfig.quoteData.is_virtual){
 			jQuery(".billing-address-details .action-edit-address").css("display","none");
 		}else{
+			jQuery(".billing-address-details .action-edit-address").css("display","none");
 			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
 		}
 	}

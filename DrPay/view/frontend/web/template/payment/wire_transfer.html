@@ -56,7 +56,7 @@
                 <button class="action primary"
                         id="drpay-wire-transfer-btn"
                         type="submit"
-                        data-bind="enable: (getCode() == isChecked())"
+                        data-bind="enable: (getCode() == isChecked()),css: {disabled: !isPlaceOrderActionAllowed()}"
                         disabled>
                     <span data-bind="i18n: 'Payment Information'"></span>
                 </button>
