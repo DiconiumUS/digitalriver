@@ -40,9 +40,6 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         $drtax = $this->_checkoutSession->getDrTax();
-		if ($drtax == '') {
-            return $this;
-        }
         $magentoTax = $total->getTaxAmount();
         $quote->setDrTax($drtax);
         $total->setDrTax($drtax);

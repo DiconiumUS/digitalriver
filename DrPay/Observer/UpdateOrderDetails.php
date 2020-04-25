@@ -126,14 +126,14 @@ class UpdateOrderDetails implements ObserverInterface
 				$order->setBaseSubtotal($this->convertToBaseCurrency($subtotal));
 			}
 			$order->save();
-			$this->session->setDrAccessToken('');
-			$this->session->setSessionCheckSum('');
-			$this->session->setDrResult('');
-			$this->session->setGuestCustomerEmail('');
-			$this->session->setDrQuoteId('');
-			$this->session->setDrTax('');
-			$this->session->setDrShipping('');
-			$this->session->setMagentoAppliedTax('');
+			$this->session->unsDrAccessToken();
+			$this->session->unsSessionCheckSum();
+			$this->session->unsDrResult();
+			$this->session->unsGuestCustomerEmail();
+			$this->session->unsDrQuoteId();
+			$this->session->unsDrTax();
+			$this->session->unsDrShipping();
+			$this->session->unsMagentoAppliedTax();
 		}
     }
 
