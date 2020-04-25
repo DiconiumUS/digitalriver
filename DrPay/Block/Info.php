@@ -70,7 +70,7 @@ class Info extends \Magento\Config\Block\System\Config\Form\Fieldset
     private function getSysInfo($fieldset)
     {
         $label = __("Connector Version:");
-        return $this->getFieldHtml($fieldset, 'sys_info', $label, "0.1.2");
+        return $this->getFieldHtml($fieldset, 'sys_info', $label, "1.1.3");
     }
 
     /**

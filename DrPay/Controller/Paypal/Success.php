@@ -126,11 +126,11 @@ class Success extends \Magento\Framework\App\Action\Action
 							$this->_redirect('checkout/cart');
 							return;	
 						} // end: if
-					} catch (\Magento\Framework\Exception\LocalizedException $le) {
+					} catch (\Magento\Framework\Exception\LocalizedException $ex) {
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
 						return;
-					} catch (Exception $ex) {
+					}  catch (Exception $ex) {
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
 						return;
