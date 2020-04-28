@@ -130,7 +130,7 @@ class Success extends \Magento\Framework\App\Action\Action
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
 						return;
-					}  catch (Exception $ex) {
+					} catch (Exception $ex) {
 						$this->helper->cancelDROrder($quote, $result);
 						$this->_redirect('checkout/cart');
 						return;

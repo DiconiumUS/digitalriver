@@ -203,7 +203,8 @@ define(
             
                 // Hide terms.
                 if(code == 'shipping') {
-                     $('.privacy-links').hide();
+					$(".payment-method._active .payment-method-content .payment-edit").click();
+                    $('.privacy-links').hide();
                 } 
             
             },

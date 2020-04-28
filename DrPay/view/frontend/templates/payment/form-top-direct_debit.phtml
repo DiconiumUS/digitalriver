@@ -132,8 +132,7 @@ function loadScriptDebit(url, callback){
                             jQuery("._active .payment-data").html(title+editlink);                        
                             jQuery("._active .payment-data").css("display","block"); 
                             jQuery("._active .payment-data").addClass('payment-active');
-                            jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block"); 
-                            jQuery(".payment-methods .payment-group .payment-method._active .actions-toolbar").css("display","block"); 
+                            jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block");
                             jQuery(".payment-methods .payment-group .payment-method._active .checkout").css("display","block"); 
                             jQuery(".primary.payment-button").css("display","none");
                             jQuery(".direct_debit-btn-first").css("display","none");
@@ -168,14 +167,13 @@ function loadScriptDebit(url, callback){
         require(["jquery"], function ($) {
             $(".payment-methods .payment-group .step-title").css("display","block");
             $(".payment-data").removeClass('payment-active');
-            $(".payment-methods .payment-group .payment-method .payment-method-title").css("display","inline-block");
+            $(".payment-methods .payment-group .payment-method .payment-method-title").css("display","block");
             $(".payment-methods .payment-group .payment-method .details").css("display","inline-block");
             $(".payment-methods .payment-group .payment-method .payment-logos").css("display","inline-block");
             $(".payment-methods .payment-group .payment-method .payment-icon").css("display","inline-block");
             $("._active #payframe").css("display","none");
             $("._active .payment-data").css("display","none");
-            $(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block"); 
-            // $(".payment-methods .payment-group .payment-method._active .actions-toolbar").css("display","none"); 
+            $(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block");
             $(".payment-methods .payment-group .payment-method._active .checkout").css("display","none"); 
             $(".direct_debit-btn-first").css("display","block");
             $(".direct_debit-btn-second").css("display","none");
