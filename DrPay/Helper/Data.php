@@ -636,7 +636,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
-            $this->_logger->error("createOrderInDr Result :".json_encode($result));
             return $result;
         }
         return;
