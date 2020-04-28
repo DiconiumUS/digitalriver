@@ -636,6 +636,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
+            $this->_logger->error("createOrderInDr Result :".json_encode($result));
             return $result;
         }
         return;
@@ -1038,67 +1039,58 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     } // end: functoin validateQuote
     
     /**
-     * Function to fetch Shipping address from result
+     * Function to fetch Billing & Shipping address from DR order creation response
      * 
-     * @param array $shipResult
+     * @param string $type | 'billing' or 'shipping'
+     * @param array $drResponse
      * 
      * @return array $returnAddress
      */
-    public function getPaymentShippingAddress($shipResult) {
-        $returnAddress  = [];       
-        $this->_logger->info('ShipResult: '.json_encode($shipResult));
-        $paymentShipAds = $shipResult['cart']['paymentMethod'];
-        
-        if(!empty($paymentShipAds[$paymentShipAds['type']]) && !empty($paymentShipAds[$paymentShipAds['type']]['shipping'])) {
-            // Data = {recipient=Sekar German, phoneNumber=408-375-6883, address={line1=Test street, city=Melbourne, state=Vic, country=AU, postalCode=3000}}
-            $res = explode('{', $paymentShipAds[$paymentShipAds['type']]['shipping']);
-            $shippingAds = [];
+    public function getDrAddress($type, $drResponse) {
+        $returnAddress  = [];   
+        $drAddress      = null;
 
-            array_walk($res, function($v, $k) use (&$shippingAds) {
-                if(!empty($v)) {
-                    $v          = preg_replace('/\}/', '', $v);
-                    $key_val    = explode(',', $v);
-                    
-                    array_walk($key_val, function($val, $key) use (&$shippingAds){
-                        $kv = explode('=', $val);
-                        
-                        if(count($kv) >= 2 && !empty($kv[1])) {
-                            $shippingAds[trim($kv[0])] = trim($kv[1]);
-                        } // end: if
-                    });
-                } // end: if
-            });
+        if(!empty($type) && !empty($drResponse['submitCart'])) {         
+            if($type == 'billing') {
+                $drAddress = isset($drResponse['submitCart']['billingAddress']) ? $drResponse['submitCart']['billingAddress'] : null;
+            } else if($type == 'shipping') {
+                $drAddress = isset($drResponse['submitCart']['shippingAddress']) ? $drResponse['submitCart']['shippingAddress'] : null;
+            } else {
+                $this->_logger->error('Address Type missing');
+                return $returnAddress;
+            } // end: if 
+        } // end: if
+
+        if(!empty($drAddress) && is_array($drAddress)) {            
+            $addressFields = ['firstName', 'line1', 'city', 'countrySubdivision', 'postalCode', 'country', 'phoneNumber'];
             
-            $addressFields = ['recipient', 'line1', 'state', 'country', 'postalCode', 'phoneNumber'];
-            
-            if(count(array_diff($addressFields, array_keys($shippingAds))) == 0) {
+            if(count(array_diff($addressFields, array_keys($drAddress))) == 0) {
                 // Get Region details
-                $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
+                $region = $this->regionModel->loadByCode($drAddress['countrySubdivision'], $drAddress['country'])->getData();
 
-                $street = $shippingAds['line1'];
-                $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
-                $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+                $street = $drAddress['line1'];
+                $street .= (!empty($drAddress['line2'])) ? (' '.$drAddress['line2']) : null;
+                $street .= (!empty($drAddress['line3'])) ? (' '.$drAddress['line3']) : null;
 
                 $street = trim($street);
-                $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
-                $name   = explode(' ', $shippingAds['recipient']);
+                $phone  = str_replace('-', '', $drAddress['phoneNumber']);
 
                 $returnAddress = [
-                    'firstname'     => (!empty($name[0])) ? trim($name[0]) : null,
-                    'lastname'      => (!empty($name[1])) ? trim($name[1]) : null,
+                    'firstname'     => (!empty($drAddress['firstName'])) ? trim($drAddress['firstName']) : null,
+                    'lastname'      => (!empty($drAddress['lastName'])) ? trim($drAddress['lastName']) : null,
                     'street'        => $street,
-                    'city'          => $shippingAds['city'],
-                    'postcode'      => $shippingAds['postalCode'],
-                    'country_id'    => $shippingAds['country'],
+                    'city'          => $drAddress['city'],
+                    'postcode'      => $drAddress['postalCode'],
+                    'country_id'    => $drAddress['country'],
                     'region'        => !empty($region['name']) ? $region['name'] : null,
                     'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
                     'telephone'     => $phone
                 ];
             } else {
-                $this->_logger->info('Mandatory Payment Details missing');
-            }            
+                $this->_logger->info('Mandatory Address Details missing');
+            }// end: if
         } // end: if
-                
+        
         return $returnAddress;
-    } // end: function getPaymentShippingAddress
+    } // end: function getDrAddress
 }
