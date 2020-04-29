@@ -15,6 +15,7 @@ $paymentInstruction = $order->getPayment()->getAdditionalInformation();
 		<p><b><?php echo __("Account Holder:") ?></b> <?php echo $paymentInstruction['accountHolder']; ?></p>
 		<p><b><?php echo __("Account Number:") ?></b> <?php echo $paymentInstruction['accountNumber']; ?></p>
 		<p><b><?php echo __("Swift Code:") ?></b> <?php echo $paymentInstruction['swiftCode']; ?></p>
+		<p><b><?php echo __("Expiration Time:") ?></b> <?php echo $block->getFormattedDate($paymentInstruction['expirationTime']); ?></p>
 		<!-- <p>Please ensure you use your <b>Reference Number</b> as your transaction reference when you electronically transfer the money  for payment. </p> -->
 	</div>
 </div>
