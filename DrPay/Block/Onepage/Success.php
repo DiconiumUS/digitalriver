@@ -44,13 +44,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
     protected $_coreRegistry = null;
 
     protected $product;
-    
-    /**
-     * Custom Date
-     * 
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $customDateTime;
 
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -69,7 +62,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
         \Magento\Framework\Registry $registry,
         \Digitalriver\DrPay\Helper\Data $helper,
         \Magento\Catalog\Model\Product $product,
-        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime,
         array $data = []
     ) {
         parent::__construct($context, $checkoutSession, $orderConfig, $httpContext, $data);
@@ -81,7 +73,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
         $this->_coreRegistry = $registry;       
         $this->product = $product;		
         $this->helper =  $helper;
-        $this->customDateTime = $dateTime;
     }
 
     /**
@@ -110,20 +101,5 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
                 'order' => $order
             ]
         );
-    }
-
-    /**
-     * Format the given date
-     * 
-     * @return string
-     */
-    public function getFormattedDate($date) {
-        if($date) {
-            $dateToTimestamp = $date;
-            $timeStamp = $this->customDateTime->gmtTimestamp($dateToTimestamp);
-            $convertdate = (new \DateTime())->setTimestamp($timeStamp);
-            return $convertdate->format("M d, Y, H:i:s A");
-        }
-        return;
     }
 }
