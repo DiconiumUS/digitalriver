@@ -33,8 +33,7 @@ class UpdateOrderDetails implements ObserverInterface
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-            \Psr\Log\LoggerInterface $logger
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->helper =  $helper;
         $this->session = $session;
@@ -44,7 +43,6 @@ class UpdateOrderDetails implements ObserverInterface
         $this->_storeManager = $storeManager;
 		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
-        $this->logger = $logger;
     }
 
     /**
@@ -60,24 +58,8 @@ class UpdateOrderDetails implements ObserverInterface
 		$quote = $observer->getEvent()->getQuote();
 		$result = $observer->getEvent()->getResult();
 		$cartresult = $observer->getEvent()->getCartResult();
-        $paymentResult = $observer->getEvent()->getPaymentResult();                
 		//print_r($result);die;
-		if(isset($result["submitCart"]["order"]["id"])){
-			// Update Order's Shipping Address details
-			if(!empty($result) && !$quote->isVirtual()) {
-				$shippingAddress = $this->helper->getDrAddress('shipping', $result);
-				if(!empty($shippingAddress)) {
-					$order->getShippingAddress()->addData($shippingAddress);
-				} // end: if
-			} // end: if
-                        // Update Order's Billing Address details
-                        if(!empty($result) && isset($result['submitCart']['billingAddress'])) {
-                            $billingAddress = $this->helper->getDrAddress('billing', $result);                         
-                            if(!empty($billingAddress)) {
-                                $order->getBillingAddress()->addData($billingAddress);
-                            } // end: if
-                        } // end: if
-                    
+		if(isset($result["submitCart"]["order"]["id"])){         
 			if(isset($result["submitCart"]['paymentMethod']['wireTransfer'])){
 				$paymentData = $result["submitCart"]['paymentMethod']['wireTransfer'];
 				$order->getPayment()->setAdditionalInformation($paymentData);
