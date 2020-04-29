@@ -118,23 +118,21 @@ class Success extends \Magento\Framework\App\Action\Action
 								return;						
 							}
                                                         
-                                                        // Update Order's Shipping Address details from DR Order creation response
-                                                        if(isset($result['submitCart']['shippingAddress']) && !$quote->isVirtual()) {
-                                                            $shippingAddress = $this->helper->getDrAddress('shipping', $result);
-                                                            
-                                                            if(!empty($shippingAddress)) {
-                                                                $order->getShippingAddress()->addData($shippingAddress);
-                                                            } // end: if
-                                                        } // end: if
+							// Update Order's Shipping Address details from DR Order creation response
+							if(isset($result['submitCart']['shippingAddress']) && !$quote->isVirtual()) {
+								$shippingAddress = $this->helper->getDrAddress('shipping', $result);
+								if(!empty($shippingAddress)) {
+									$order->getShippingAddress()->addData($shippingAddress);
+								} // end: if
+							} // end: if
 
-                                                        // Update Order's Billing Address details from DR Order creation responsev
-                                                        if(isset($result['submitCart']['billingAddress'])) {
-                                                            $billingAddress = $this->helper->getDrAddress('billing', $result);   
-                                                            
-                                                            if(!empty($billingAddress)) {
-                                                                $order->getBillingAddress()->addData($billingAddress);
-                                                            } // end: if
-                                                        } // end: if
+							// Update Order's Billing Address details from DR Order creation responsev
+							if(isset($result['submitCart']['billingAddress'])) {
+								$billingAddress = $this->helper->getDrAddress('billing', $result);
+								if(!empty($billingAddress)) {
+									$order->getBillingAddress()->addData($billingAddress);
+								} // end: if
+							} // end: if
                                                         
 							$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
 							$this->_redirect('checkout/onepage/success', array('_secure'=>true));

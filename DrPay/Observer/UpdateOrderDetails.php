@@ -59,11 +59,7 @@ class UpdateOrderDetails implements ObserverInterface
 		$result = $observer->getEvent()->getResult();
 		$cartresult = $observer->getEvent()->getCartResult();
 		//print_r($result);die;
-		if(isset($result["submitCart"]["order"]["id"])){         
-			if(isset($result["submitCart"]['paymentMethod']['wireTransfer'])){
-				$paymentData = $result["submitCart"]['paymentMethod']['wireTransfer'];
-				$order->getPayment()->setAdditionalInformation($paymentData);
-			}
+		if(isset($result["submitCart"]["order"]["id"])){
 			$orderId = $result["submitCart"]["order"]["id"];
 			$order->setDrOrderId($orderId);
 			$amount = $quote->getDrTax();

@@ -100,6 +100,10 @@ class Success extends \Magento\Framework\App\Action\Action
 							$this->messageManager->addError(__('Unable to Place Order!! Payment has been failed'));
 							$this->_redirect('checkout/cart');
 							return;						
+						}         
+						if(isset($result["submitCart"]['paymentMethod']['wireTransfer'])){
+							$paymentData = $result["submitCart"]['paymentMethod']['wireTransfer'];
+							$order->getPayment()->setAdditionalInformation($paymentData);
 						}
 
 						$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
