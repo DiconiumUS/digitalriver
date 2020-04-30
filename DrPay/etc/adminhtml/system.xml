@@ -117,7 +117,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
@@ -155,7 +155,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
@@ -193,7 +193,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
@@ -231,7 +231,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
@@ -266,7 +266,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
@@ -301,7 +301,7 @@
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field> 
-                <field id="allow_currency" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="allow_currency" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Allowed Currencies</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Currency</source_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Currency\Allow</backend_model>
