@@ -436,7 +436,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->session->setDrQuoteId($drquoteId);
 				if($tax_inclusive){
 					$shippingAndHandling = $result["cart"]["pricing"]["shippingAndHandling"]["value"];
-					$drtax = 0;
+					$drtax = $result["cart"]["pricing"]["tax"]["value"];
 				} else {
 					$drtax = $result["cart"]["pricing"]["tax"]["value"];
 					$shippingAndHandling = 0;
