@@ -1093,4 +1093,60 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         
         return $returnAddress;
     } // end: function getDrAddress
+
+    /**
+     * Function to send EFN update to DR when Invoice/Shipment created from Magento Admin
+     * Only Invoice/Shipment Success cases are sent
+     * 
+     * @param array $lineItems
+     * @return void
+     */
+    public function sendEfnToDr($lineItems) {
+        // New function
+        $items      = [];
+        $request    = [];
+        // @TODO: Check based on Shipment or Invoice-------------------------------->
+        $status         = 'Completed';
+        $responseCode   = 'Success';
+        
+        try {
+            $url = $this->getDrPostUrl();
+
+            foreach ($lineItems as $itemId => $item) {
+                $items['item'][] = [
+                    "requisitionID"             => $item['requisitionID'],
+                    "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
+                    "lineItemID"                => $itemId,
+                    "fulfillmentCompanyID"      => $this->getCompanyId(),
+                    "electronicFulfillmentNoticeItems" => [
+                        "item" => [
+                            [
+                                "status"                => $status,
+                                "reasonCode"            => $responseCode,
+                                "quantity"              => $item['quantity'],
+                                "electronicContentType" => "EntitlementDetail",
+                                "electronicContent"     => "magentoEventID"
+                            ]
+                        ]
+                    ]
+                ];
+            } // end: foreach
+
+            $request['ElectronicFulfillmentNoticeArray'] = $items;
+
+            $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+            $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+            $this->curl->addHeader("Content-Type", "application/json");
+            $this->curl->post($url, $this->jsonHelper->jsonEncode($request));
+            $result = $this->curl->getBody();
+            $this->_logger->info('================================================================');
+            $this->_logger->info('sendEfnToDr Request : '.json_encode($request));
+            $this->_logger->info('sendEfnToDr Response : '.json_encode($result));        
+            $this->_logger->info('================================================================');
+        } catch (Exception $ex) {
+            $this->_logger->error('Error sendEfnToDr : '. $ex->getMessage());
+        } // end: try
+        
+        return $result;
+    } // end: function sendEfnToDr    
 }
