@@ -298,7 +298,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $data["cart"]["lineItems"] = $lineItems;
                 $address = $quote->getBillingAddress();
-                if ($address && $address->getId() && $address->getCity()) {
+                if ($address && $address->getCity()) {
                     $billingAddress =  [];
                     $billingAddress["id"] = "billingAddress";
                     $billingAddress["firstName"] = $address->getFirstname();

@@ -19,4 +19,13 @@ $paymentInstruction = $order->getPayment()->getAdditionalInformation();
 		<!-- <p>Please ensure you use your <b>Reference Number</b> as your transaction reference when you electronically transfer the money  for payment. </p> -->
 	</div>
 </div>
+<script>
+require([
+     'Magento_Customer/js/customer-data'
+ ], function (customerData) {
+     var sections = ['cart'];
+     customerData.invalidate(sections);
+     //customerData.reload(sections, true);
+ });
+</script>
 <?php endif; ?>
