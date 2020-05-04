@@ -22,4 +22,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Sales\Model\Order\Email\Container\OrderIdentity">
+        <plugin name="change_is_enable_method" type="Digitalriver\DrPay\Plugin\Sales\Order\Email\Container\OrderIdentityPlugin"/>
+    </type>
 </config>
