@@ -106,6 +106,23 @@ class Success extends \Magento\Framework\App\Action\Action
 						$isValidQuote = $this->helper->validateQuote($quote);
 
 						if(!empty($isValidQuote)){
+                                                    
+                                                    // Update Quote's Shipping Address details from DR Order creation response
+							if(isset($result['submitCart']['shippingAddress']) && !$quote->isVirtual()) {
+								$shippingAddress = $this->helper->getDrAddress('shipping', $result);
+								if(!empty($shippingAddress)) {
+									$quote->getShippingAddress()->addData($shippingAddress);
+								} // end: if
+							} // end: if
+
+							// Update Quote's Billing Address details from DR Order creation response
+							if(isset($result['submitCart']['billingAddress'])) {
+								$billingAddress = $this->helper->getDrAddress('billing', $result);
+								if(!empty($billingAddress)) {
+									$quote->getBillingAddress()->addData($billingAddress);
+								} // end: if
+							} // end: if
+                                                        
 							$order = $this->quoteManagement->submit($quote);
 							if ($order) {
 								$this->checkoutSession->setLastOrderId($order->getId())
@@ -117,22 +134,6 @@ class Success extends \Magento\Framework\App\Action\Action
 								$this->_redirect('checkout/cart');
 								return;						
 							}
-                                                        
-							// Update Order's Shipping Address details from DR Order creation response
-							if(isset($result['submitCart']['shippingAddress']) && !$quote->isVirtual()) {
-								$shippingAddress = $this->helper->getDrAddress('shipping', $result);
-								if(!empty($shippingAddress)) {
-									$order->getShippingAddress()->addData($shippingAddress);
-								} // end: if
-							} // end: if
-
-							// Update Order's Billing Address details from DR Order creation responsev
-							if(isset($result['submitCart']['billingAddress'])) {
-								$billingAddress = $this->helper->getDrAddress('billing', $result);
-								if(!empty($billingAddress)) {
-									$order->getBillingAddress()->addData($billingAddress);
-								} // end: if
-							} // end: if
                                                         
 							$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
 							$this->_redirect('checkout/onepage/success', array('_secure'=>true));

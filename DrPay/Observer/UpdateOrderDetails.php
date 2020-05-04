@@ -33,8 +33,7 @@ class UpdateOrderDetails implements ObserverInterface
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-            \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->helper =  $helper;
         $this->session = $session;
@@ -44,7 +43,6 @@ class UpdateOrderDetails implements ObserverInterface
         $this->_storeManager = $storeManager;
 		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
-                $this->orderSender = $orderSender;
     }
 
     /**
@@ -121,12 +119,6 @@ class UpdateOrderDetails implements ObserverInterface
 			$this->session->unsDrTax();
 			$this->session->unsDrShipping();
 			$this->session->unsMagentoAppliedTax();
-                        
-                        $this->session->setForceOrderMailSentOnSuccess(true);
-                        if ($order->getPayment()->getMethodInstance()->getCode() != \Digitalriver\DrPay\Model\CreditCard::PAYMENT_METHOD_CREDITCARD_CODE) {
-                            $this->orderSender->send($order, true);
-                        }
-                        $this->session->unsForceOrderMailSentOnSuccess();
 		}
     }
 
