@@ -12,10 +12,14 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 {
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
 		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->setCode('dr_tax');
         $this->_checkoutSession = $checkoutSession;
+        $this->_storeManager = $storeManager;
+		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
     }
     
@@ -40,8 +44,7 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }	
 		
 		$accessToken = $this->_checkoutSession->getDrAccessToken();
-		if(!empty($accessToken))
-		{
+		if(!empty($accessToken)){
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 			$drtax = $this->_checkoutSession->getDrTax();
 			$productTotal = $this->_checkoutSession->getDrProductTotal();
@@ -50,16 +53,13 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 			$shippingAndHandling = $this->_checkoutSession->getDrShippingAndHandling();
 			$orderTotal = $this->_checkoutSession->getDrOrderTotal();
 
-			if($tax_inclusive)
-			{
+			if($tax_inclusive){
 				$total->setSubtotalInclTax($productTotal);
 				$total->setSubtotal($productTotal - $productTax);
 				
 				$total->setShippingInclTax($shippingAndHandling);
 				$total->setShipping($shippingAndHandling - $shippingTax);
-			}
-			else
-			{
+			} else {
 				$total->setSubtotalInclTax($productTotal + $productTax);
 				$total->setSubtotal($productTotal);
 				
@@ -67,10 +67,8 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 				$total->setShipping($shippingAndHandling - $shippingTax);
 			}
 			
-			$total->setBaseGrandTotal($orderTotal);
-			//$total->setBaseGrandTotalInclTax($orderTotal);
+			$total->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
 			$total->setGrandTotal($orderTotal);
-			//$total->setGrandTotalInclTax($orderTotal);
 
 			$quote->setDrTax($drtax);
 			$total->setDrTax($drtax);
@@ -101,5 +99,13 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ];
         
         return $result;
+    }
+
+	public function convertToBaseCurrency($price){
+        $currentCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+        $baseCurrency = $this->_storeManager->getStore()->getBaseCurrency()->getCode();
+        $rate = $this->currencyFactory->create()->load($currentCurrency)->getAnyRate($baseCurrency);
+        $returnValue = $price * $rate;
+        return $returnValue;
     }
 }
