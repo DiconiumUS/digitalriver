@@ -1198,15 +1198,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      */
     public function getPendingFulfillment($orderObj) {
-        
         try {
             $canInvoice = $orderObj->canInvoice(); // returns true for pending items
             $canShip    = $orderObj->canShip();  // returns true for pending items
             
             // Return true if both invoice and shipment are false, i.e. No items to fulfill
             return (empty($canInvoice) && empty($canShip));
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error getInvoicesOrShipmentsList : '.json_encode($le->getRawMessage()));
         } catch (\Exception $ex) {
-            $this->_logger->error('Error getInvoicesOrShipmentsList : '. $ex->getMessage());
+            $this->_logger->error('Error getInvoicesOrShipmentsList : '.$ex->getMessage());
             return false;
         } // end: try    
     } // end: function getPendingFulfillment    

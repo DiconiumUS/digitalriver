@@ -64,13 +64,10 @@ class ShipmentPlugin {
             } // end: foreach 
             
             if(!empty($items)) {
-                //$this->drHelper->sendEfnToDr($items);
                 $this->drHelper->createFulfillmentRequestToDr($items, $subject->getOrder());
             } else {
                 $this->_logger->info('afterRegister: No items to send to DR EFN');
-            } //  end: if
-            
-            
+            } // end: if            
         } catch (\Magento\Framework\Exception\LocalizedException $le) {
             $this->_logger->error('Error afterRegister : '.json_encode($le->getRawMessage()));
         } catch (\Exception $ex) {

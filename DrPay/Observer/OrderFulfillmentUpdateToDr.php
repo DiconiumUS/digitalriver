@@ -55,7 +55,7 @@ class OrderFulfillmentUpdateToDr implements ObserverInterface
                 $this->_logger->info('createFulfillmentRequestToDr: No items to send to DR EFN');
             } //  end: if
         } catch (Exception $ex) {
-            $this->_logger->error('createFulfillmentRequestToDr Error : '. $ex->getMessage());
+            $this->_logger->error('createFulfillmentRequestToDr Error : '.$ex->getMessage());
         } // end: try      
     }
     
@@ -96,7 +96,7 @@ class OrderFulfillmentUpdateToDr implements ObserverInterface
                 } // end: if
             } // end: foreach
         } catch (Exception $ex) {
-            $this->_logger->error('Error from _getInvoiceDetails(): '. $ex->getMessage());
+            $this->_logger->error('Error from _getInvoiceDetails(): '.$ex->getMessage());
         } // end: try 
 
         return $items;
