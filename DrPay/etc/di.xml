@@ -16,5 +16,8 @@
     </type> 
 	<type name="Magento\Customer\Model\AccountManagement">
         <plugin name="set_guest_email" type="Digitalriver\DrPay\Plugin\AccountManagementPlugin" sortOrder="1"/>
-    </type>  
+    </type>
+    <type name="Magento\Sales\Model\Order\Shipment">
+        <plugin name="salesOrderShipmentRegister" type="Digitalriver\DrPay\Plugin\Sales\Order\ShipmentPlugin" sortOrder="1"/>
+    </type>    
 </config>

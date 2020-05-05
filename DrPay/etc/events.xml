@@ -22,10 +22,7 @@
 	<event name="dr_place_order_success">
         <observer name="dr_place_order_success" instance="Digitalriver\DrPay\Observer\UpdateOrderDetails" />
     </event>
-    <event name="sales_order_shipment_save_after">
-        <observer name="salesOrderShipmentSaveAfter" instance="Digitalriver\DrPay\Observer\DrEfnUpdate" disabled="false"/>
-    </event>   
-    <event name="sales_order_invoice_save_after">
-        <observer name="salesOrderInvoiceSaveAfter" instance="Digitalriver\DrPay\Observer\DrEfnUpdate" disabled="false"/>
-    </event>   
+    <event name="sales_order_invoice_register">
+        <observer name="salesOrderInvoiceRegister" instance="Digitalriver\DrPay\Observer\OrderFulfillmentUpdateToDr" disabled="false"/>
+    </event> 
 </config>

@@ -1107,61 +1107,107 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         } // end: if
         
         return $returnAddress;
-    } // end: function getDrAddress
-
+    } // end: function getDrAddress  
+    
     /**
-     * Function to send EFN update to DR when Invoice/Shipment created from Magento Admin
+     * Function to send EFN request to DR when Invoice/Shipment created from Magento Admin
      * Only Invoice/Shipment Success cases are sent
      * 
      * @param array $lineItems
      * @return void
      */
-    public function sendEfnToDr($lineItems) {
-        // New function
+    public function createFulfillmentRequestToDr($lineItems, $order) {
         $items      = [];
         $request    = [];
-        // @TODO: Check based on Shipment or Invoice-------------------------------->
         $status         = 'Completed';
-        $responseCode   = 'Success';
+        $responseCode   = 'Success';   
         
         try {
-            $url = $this->getDrPostUrl();
+            if ($order->getDrOrderId()) {
+                $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
 
-            foreach ($lineItems as $itemId => $item) {
-                $items['item'][] = [
-                    "requisitionID"             => $item['requisitionID'],
-                    "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
-                    "lineItemID"                => $itemId,
-                    "fulfillmentCompanyID"      => $this->getCompanyId(),
-                    "electronicFulfillmentNoticeItems" => [
-                        "item" => [
-                            [
-                                "status"                => $status,
-                                "reasonCode"            => $responseCode,
-                                "quantity"              => $item['quantity'],
-                                "electronicContentType" => "EntitlementDetail",
-                                "electronicContent"     => "magentoEventID"
+                if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
+                    return;
+                } // end: if
+                
+                foreach ($lineItems as $itemId => $item) {
+                    $items['item'][] = [
+                        "requisitionID"             => $item['requisitionID'],
+                        "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
+                        "lineItemID"                => $itemId,
+                        "fulfillmentCompanyID"      => $this->getCompanyId(),
+                        "electronicFulfillmentNoticeItems" => [
+                            "item" => [
+                                [
+                                    "status"                => $status,
+                                    "reasonCode"            => $responseCode,
+                                    "quantity"              => $item['quantity'],
+                                    "electronicContentType" => "EntitlementDetail",
+                                    "electronicContent"     => "magentoEventID"
+                                ]
                             ]
                         ]
-                    ]
-                ];
-            } // end: foreach
+                    ];
+                } // end: foreach
 
-            $request['ElectronicFulfillmentNoticeArray'] = $items;
+                $request['ElectronicFulfillmentNoticeArray'] = $items;
 
-            $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->setOption(CURLOPT_TIMEOUT, 40);
-            $this->curl->addHeader("Content-Type", "application/json");
-            $this->curl->post($url, $this->jsonHelper->jsonEncode($request));
-            $result = $this->curl->getBody();
-            $this->_logger->info('================================================================');
-            $this->_logger->info('sendEfnToDr Request : '.json_encode($request));
-            $this->_logger->info('sendEfnToDr Response : '.json_encode($result));        
-            $this->_logger->info('================================================================');
-        } catch (Exception $ex) {
-            $this->_logger->error('Error sendEfnToDr : '. $ex->getMessage());
-        } // end: try
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->post($this->getDrPostUrl(), $this->jsonHelper->jsonEncode($request));
+                $result     = $this->curl->getBody();
+                $statusCode = $this->curl->getStatus();
+
+                // Status Update: Exsisting code used according to review changes
+                if ($statusCode == '200') {
+                    // Post Status updated only if entire order items are fulfilled
+                    if($this->getPendingFulfillment($order)) {
+                        // if all the quantites are satisfied then mark as 1
+                        $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
+                        $drModel->setPostStatus(1);
+                        $drModel->save();
+                    } // end: if
+                    $comment = 'Magento & DR order status are matched';
+                } else {
+                    $comment = 'Magento & DR order status are mis-matched';
+                } // end: if
+
+                $order->addStatusToHistory($order->getStatus(), __($comment));
+
+                $this->_logger->info('createFulfillmentRequestToDr Request : '.json_encode($request));
+                $this->_logger->info('createFulfillmentRequestToDr Response : '.json_encode($result));        
+            } else {
+                $this->_logger->error('Error createFulfillmentRequestToDr : Empty DR Order Id');
+            } // end: if
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error createFulfillmentRequestToDr : '.json_encode($le->getRawMessage()));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error createFulfillmentRequestToDr : '. $ex->getMessage());
+        } // end: try       
         
         return $result;
-    } // end: function sendEfnToDr    
+    } // end: function createFulfillmentRequestToDr
+    
+    /**
+     * Function to check order has any items to Invoice or Ship
+     * 
+     * @var object $orderObj
+     * 
+     * @return boolean true/false
+     *
+     */
+    public function getPendingFulfillment($orderObj) {
+        
+        try {
+            $canInvoice = $orderObj->canInvoice(); // returns true for pending items
+            $canShip    = $orderObj->canShip();  // returns true for pending items
+            
+            // Return true if both invoice and shipment are false, i.e. No items to fulfill
+            return (empty($canInvoice) && empty($canShip));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error getInvoicesOrShipmentsList : '. $ex->getMessage());
+            return false;
+        } // end: try    
+    } // end: function getPendingFulfillment    
 }
