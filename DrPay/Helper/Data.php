@@ -316,7 +316,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     $billingAddress["line3"] = "";
                     $billingAddress["city"] = $address->getCity();
-                    $billingAddress["countrySubdivision"] = '';
+                    $billingAddress["countrySubdivision"] = 'na';
                     $regionName = $address->getRegion();
                     if ($regionName) {
                         $countryId = $address->getCountryId();
@@ -353,11 +353,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                         $shippingAddress["line3"] = "";
                         $shippingAddress["city"] = $address->getCity();
-                        $shippingAddress["countrySubdivision"] = '';
+                        $shippingAddress["countrySubdivision"] = 'na';
                         $regionName = $address->getRegion();
                         if ($regionName) {
 							if(is_array($regionName)){
-								$shippingAddress["countrySubdivision"] = '';
+								$shippingAddress["countrySubdivision"] = 'na';
 							}else{
 								$countryId = $address->getCountryId();
 								$region = $this->regionModel->loadByName($regionName, $countryId);
@@ -434,15 +434,29 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->session->setDrQuoteError(false);
                 $drquoteId = $result["cart"]["id"];
                 $this->session->setDrQuoteId($drquoteId);
-				if($tax_inclusive){
-					$shippingAndHandling = $result["cart"]["pricing"]["shippingAndHandling"]["value"];
-					$drtax = $result["cart"]["pricing"]["tax"]["value"];
-				} else {
-					$drtax = $result["cart"]["pricing"]["tax"]["value"];
-					$shippingAndHandling = 0;
+				
+				$shippingTax = 0;
+				$productTax = 0;
+				$productTotal = 0;
+
+				$lineItems = $result["cart"]['lineItems']['lineItem'];
+				foreach($lineItems as $item){
+					$productTax += $item['pricing']['productTax']['value'];
+					$shippingTax += $item['pricing']['shippingTax']['value'];
+					$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
 				}
-                $this->session->setDrTax($drtax);
-				$this->session->setDrShipping($shippingAndHandling);
+				
+				$this->session->setDrProductTotal($productTotal);
+				$this->session->setDrProductTax($productTax);
+				$this->session->setDrShippingTax($shippingTax);
+				if($tax_inclusive)
+					$this->session->setDrShippingAndHandling($result["cart"]["pricing"]["shippingAndHandling"]["value"]);
+				else
+					$this->session->setDrShippingAndHandling($result["cart"]["pricing"]["shippingAndHandling"]["value"] + $shippingTax);
+
+				$this->session->setDrOrderTotal($result['cart']['pricing']['orderTotal']['value']);
+				$this->session->setDrTax($result["cart"]["pricing"]["tax"]["value"]);
+
                 $this->session->setMagentoAppliedTax($address->getTaxAmount());
                 if ($return) {
                     return $result;

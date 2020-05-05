@@ -119,6 +119,11 @@ class UpdateOrderDetails implements ObserverInterface
 			$this->session->unsDrTax();
 			$this->session->unsDrShipping();
 			$this->session->unsMagentoAppliedTax();
+			$this->session->unsDrProductTotal();
+			$this->session->unsDrProductTax();
+			$this->session->unsDrShippingTax();
+			$this->session->unsDrShippingAndHandling();
+			$this->session->unsDrOrderTotal();
 		}
     }
 
@@ -126,8 +131,8 @@ class UpdateOrderDetails implements ObserverInterface
 		$orderitem->setDrOrderLineitemId($item['id']);
 		$qty = $item['quantity'];
 		$listprice = $item["pricing"];
-		if(isset($listprice["tax"]['value'])){
-			$total_tax_amount = $listprice["tax"]['value'];
+		if(isset($listprice["productTax"]['value'])){
+			$total_tax_amount = $listprice["productTax"]['value'];
 			$tax_amount = $total_tax_amount/$qty;
 			$orderitem->setTaxAmount($total_tax_amount);
 			$orderitem->setBaseTaxAmount($this->convertToBaseCurrency($total_tax_amount));
