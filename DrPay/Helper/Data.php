@@ -438,12 +438,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$shippingTax = 0;
 				$productTax = 0;
 				$productTotal = 0;
-
-				$lineItems = $result["cart"]['lineItems']['lineItem'];
-				foreach($lineItems as $item){
-					$productTax += $item['pricing']['productTax']['value'];
-					$shippingTax += $item['pricing']['shippingTax']['value'];
-					$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+				if(isset($result["cart"]['lineItems']) && isset($result["cart"]['lineItems']['lineItem'])) {					
+					$lineItems = $result["cart"]['lineItems']['lineItem'];
+					foreach($lineItems as $item){
+						$productTax += $item['pricing']['productTax']['value'];
+						$shippingTax += $item['pricing']['shippingTax']['value'];
+						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+					}
 				}
 				
 				$this->session->setDrProductTotal($productTotal);
