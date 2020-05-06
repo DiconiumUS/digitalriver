@@ -70,7 +70,8 @@ class UpdateOrderStatus implements ObserverInterface
 					foreach($orderitem->getChildrenItems() as $childitem){						
 						$child_tax_amount = $childitem->getPriceInclTax() - $childitem->getPrice();
 						if($child_tax_amount > 0){
-							$parent_tax_amount = $parent_tax_amount + $child_tax_amount;
+							$qty = $childitem->getQtyOrdered();
+							$parent_tax_amount = $parent_tax_amount + ($child_tax_amount * $qty);
 						}
 					}
 					if($parent_tax_amount > 0){

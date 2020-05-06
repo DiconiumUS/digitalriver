@@ -130,6 +130,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                     'shippingAmount' => $shipAmnt,
                     'amountsEstimated' => true,
                     'shipping' => $shipping,
+					'requestShipping' => false
                 ],
             ];
             $responseContent = [
