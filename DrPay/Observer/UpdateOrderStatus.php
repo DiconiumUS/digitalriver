@@ -74,7 +74,7 @@ class UpdateOrderStatus implements ObserverInterface
 						}
 					}
 					if($parent_tax_amount > 0){
-						$qty = $childitem->getQtyOrdered();
+						$qty = $orderitem->getQtyOrdered();
 						$total_tax_amount = $parent_tax_amount * $qty;
 						$orderitem->setTaxAmount($total_tax_amount);
 						$orderitem->setBaseTaxAmount($this->convertToBaseCurrency($total_tax_amount));
