@@ -27,6 +27,14 @@ class ShipmentPlugin {
         $this->_logger  = $logger;
     }
     
+    /**
+     * This function to used to get the shipped qty from register functionality
+     * \Magento\Sales\Model\Order\Shipment
+     * @param object $subject
+     * @param object $result
+     * 
+     * @return $result
+     */
     public function afterRegister(
         \Magento\Sales\Model\Order\Shipment $subject,
         $result

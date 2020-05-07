@@ -1115,7 +1115,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Only Invoice/Shipment Success cases are sent
      * 
      * @param array $lineItems
-     * @return void
+     * @param object $order
+     * 
+     * @return array $result
      */
     public function createFulfillmentRequestToDr($lineItems, $order) {
         $items      = [];
@@ -1211,5 +1213,76 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->_logger->error('Error getInvoicesOrShipmentsList : '.$ex->getMessage());
             return false;
         } // end: try    
-    } // end: function getPendingFulfillment    
+    } // end: function getPendingFulfillment   
+    
+    /**
+     * Function to send EFN request to DR when @OrderItem is cancelled from Magento Admin
+     * 
+     * @param array $lineItems
+     * @param object $order
+     * 
+     * @return array $result
+     */
+    public function cancelFulfillmentRequestToDr($lineItems, $order) {
+        $items      = [];
+        $request    = [];
+        $status         = 'Cancelled';
+        $responseCode   = 'Cancelled'; 
+        
+        try {
+            if ($order->getDrOrderId()) {
+                $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
+
+                if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
+                    return;
+                } // end: if
+                
+                foreach ($lineItems as $itemId => $item) {
+                    $items['item'][] = [
+                        "requisitionID"             => $item['requisitionID'],
+                        "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
+                        "lineItemID"                => $itemId,
+                        "fulfillmentCompanyID"      => $this->getCompanyId(),
+                        "electronicFulfillmentNoticeItems" => [
+                            "item" => [
+                                [
+                                    "status"                => $status,
+                                    "reasonCode"            => $responseCode,
+                                    "quantity"              => $item['quantity'],
+                                    "electronicContentType" => "EntitlementDetail",
+                                    "electronicContent"     => "magentoEventID"
+                                ]
+                            ]
+                        ]
+                    ];
+                } // end: foreach
+
+                $request['ElectronicFulfillmentNoticeArray'] = $items;
+
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->post($this->getDrPostUrl(), $this->jsonHelper->jsonEncode($request));
+                $result     = $this->curl->getBody();
+                $statusCode = $this->curl->getStatus();
+
+                // Status Update: Exsisting code used according to review changes
+                if ($statusCode == '200') {
+                    $comment = 'Order cancellation pushed to DR';
+                    $order->addStatusToHistory($order->getStatus(), __($comment));
+                } // end: if               
+
+                $this->_logger->info('cancelFulfillmentRequestToDr Request : '.json_encode($request));
+                $this->_logger->info('cancelFulfillmentRequestToDr Response : '.json_encode($result));        
+            } else {
+                $this->_logger->error('Error cancelFulfillmentRequestToDr : Empty DR Order Id');
+            } // end: if
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error cancelFulfillmentRequestToDr : '.json_encode($le->getRawMessage()));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error cancelFulfillmentRequestToDr : '. $ex->getMessage());
+        } // end: try       
+        
+        return $result;
+    } // end: function cancelFulfillmentRequestToDr
 }

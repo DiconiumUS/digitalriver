@@ -19,5 +19,8 @@
     </type>
     <type name="Magento\Sales\Model\Order\Shipment">
         <plugin name="salesOrderShipmentRegister" type="Digitalriver\DrPay\Plugin\Sales\Order\ShipmentPlugin" sortOrder="1"/>
-    </type>    
+    </type>
+    <type name="Magento\Sales\Model\Order\Item">
+        <plugin name="salesOrderItemCancel" type="Digitalriver\DrPay\Plugin\Sales\Order\ItemPlugin" sortOrder="1"/>
+    </type>
 </config>

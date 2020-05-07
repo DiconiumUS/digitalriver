@@ -24,5 +24,8 @@
     </event>
     <event name="sales_order_invoice_register">
         <observer name="salesOrderInvoiceRegister" instance="Digitalriver\DrPay\Observer\OrderFulfillmentUpdateToDr" disabled="false"/>
-    </event> 
+    </event>
+    <event name="order_cancel_after">
+        <observer name="salesOrderCancel" instance="Digitalriver\DrPay\Observer\OrderCancelObserver" disabled="false"/>
+    </event>
 </config>
