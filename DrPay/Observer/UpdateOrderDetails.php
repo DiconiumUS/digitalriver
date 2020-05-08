@@ -95,8 +95,20 @@ class UpdateOrderDetails implements ObserverInterface
 							$drItemMagentoRefId = $item["customAttributes"]["attribute"][0]["value"];
 							$magentoItemId = $orderitem->getQuoteItemId();
 						}else{
-							$drItemMagentoRefId = $item["product"]["externalReferenceId"];
-							$magentoItemId = $orderitem->getSku();
+							$flag = false;
+							$customAttributes = $item["customAttributes"]["attribute"];
+							foreach($customAttributes as $customAttribute){
+								if($customAttribute["name"] == "magento_quote_item_id"){
+									$drItemMagentoRefId = $customAttribute["value"];
+									$magentoItemId = $orderitem->getQuoteItemId();
+									$flag = true;
+									break;
+								}
+							}
+							if(!$flag){
+								$drItemMagentoRefId = $item["product"]["externalReferenceId"];
+								$magentoItemId = $orderitem->getSku();
+							}
 						}
 						if($drItemMagentoRefId == $magentoItemId){
 							$this->updateDrItemsDetails($orderitem, $item, $tax_inclusive);
