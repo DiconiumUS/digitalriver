@@ -11,12 +11,7 @@ $paymentInstruction = $order->getPayment()->getAdditionalInformation();
 		<p><b><?php echo __("Amount:") ?></b> <?php echo $order->formatPrice($order->getGrandTotal()); ?></p>
 		<p><b><?php echo __("Wire Transfer Reference Number:") ?></b> <?php echo $paymentInstruction['referenceId']; ?></p>
 		<p><b><?php echo __("Bank:") ?></b> <?php echo $paymentInstruction['bankName']; ?></p>
-		<?php if(isset($paymentInstruction['additionalBankInformation'])):?>
-			<?php $address = explode("Address", $paymentInstruction['additionalBankInformation']);?>
-			<p><b><?php echo __("Location:") ?></b> <?php echo str_replace("|", '', $address[1]); ?></p>
-		<?php else:?>
-			<p><b><?php echo __("Location:") ?></b> <?php echo $paymentInstruction['city']. ' '. $paymentInstruction['country']; ?></p>
-		<?php endif;?>
+		<p><b><?php echo __("Location:") ?></b> <?php echo $paymentInstruction['additionalBankInformation']. ', ' . $paymentInstruction['city']. ', ' . $paymentInstruction['country']; ?></p>
 		<p><b><?php echo __("Account Holder:") ?></b> <?php echo $paymentInstruction['accountHolder']; ?></p>
 		<p><b><?php echo __("Account Number:") ?></b> <?php echo $paymentInstruction['accountNumber']; ?></p>
 		<p><b><?php echo __("Swift Code:") ?></b> <?php echo $paymentInstruction['swiftCode']; ?></p>
