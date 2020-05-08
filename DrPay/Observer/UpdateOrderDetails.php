@@ -142,18 +142,8 @@ class UpdateOrderDetails implements ObserverInterface
 			if($tax_inclusive){				
 				$orderitem->setPrice($listprice["salePrice"]['value']);
 				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
-				//$orderitem->setOriginalPrice($orderitem->getPrice());
-				//$orderitem->setBaseOriginalPrice($orderitem->getBasePrice());
-				$orderitem->setRowTotal($orderitem->getPrice() * $qty);
+				$orderitem->setRowTotal($listprice["salePriceWithQuantity"]['value'] - $total_tax_amount);
 				$orderitem->setBaseRowTotal($this->convertToBaseCurrency($orderitem->getRowTotal()));
-				/*
-				$orderitem->setPrice($orderitem->getPriceInclTax() - $tax_amount);
-				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
-				//$orderitem->setOriginalPrice($orderitem->getPrice());
-				//$orderitem->setBaseOriginalPrice($orderitem->getBasePrice());
-				$orderitem->setRowTotal($orderitem->getRowTotalInclTax() - $total_tax_amount);
-				$orderitem->setBaseRowTotal($this->convertToBaseCurrency($orderitem->getRowTotal()));
-				*/
 			}else{
 				$orderitem->setPriceInclTax($orderitem->getPrice() + $tax_amount);
 				$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPriceInclTax()));
