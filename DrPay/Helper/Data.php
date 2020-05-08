@@ -724,8 +724,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             if ($drModel->getPostStatus() == 1) {
                 return;
             }
-            $url = $this->getDrPostUrl();
-            $fulFillmentPost = $this->getFulFillmentPostRequest($order);
+            $storeCode = $order->getStore()->getCode();
+            $url = $this->getDrPostUrl($storeCode);
+            $fulFillmentPost = $this->getFulFillmentPostRequest($order, $storeCode);
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->setOption(CURLOPT_TIMEOUT, 40);
             $this->curl->addHeader("Content-Type", "application/json");
@@ -746,7 +747,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param type $order
      * @return type
      */
-    public function getFulFillmentPostRequest($order)
+    public function getFulFillmentPostRequest($order, $storeCode = null)
     {
 
         $status = '';
@@ -777,7 +778,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     ["requisitionID" => $order->getDrOrderId(),
                         "noticeExternalReferenceID" => $order->getIncrementId(),
                         "lineItemID" => $item['lineitemid'],
-                        "fulfillmentCompanyID" => $this->getCompanyId(),
+                        "fulfillmentCompanyID" => $this->getCompanyId($storeCode),
                         "electronicFulfillmentNoticeItems" => [
                             "item" => [
                                 [
@@ -844,15 +845,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $order = $creditmemo->getOrder();
         $flag = false;
         if ($order->getDrOrderId()) {
-            $url = $this->getDrRefundUrl()."orders/".$order->getDrOrderId()."/refunds";
-            $token = $this->generateRefundToken();
+            $storeCode = $order->getStore()->getCode();
+            $url = $this->getDrRefundUrl($storeCode)."orders/".$order->getDrOrderId()."/refunds";
+            $token = $this->generateRefundToken($storeCode);
             if ($token) {
                 $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_FULL", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => round($creditmemo->getGrandTotal(), 2)]];
 
                 $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                 $this->curl->setOption(CURLOPT_TIMEOUT, 40);
                 $this->curl->addHeader("Content-Type", "application/json");
-                $this->curl->addHeader("x-siteid", $this->getCompanyId());
+                $this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
                 $this->curl->addHeader("Authorization", "Bearer " . $token);
                 $this->curl->post($url, json_encode($data));
 				$this->_logger->error("Refund Request :".json_encode($data));
@@ -874,19 +876,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return type
      */
-    public function generateRefundToken()
+    public function generateRefundToken($storeCode = null)
     {
         $token = '';
-        if ($this->getDrBaseUrl() && $this->getDrRefundUsername() && $this->getDrRefundPassword() && $this->getDrRefundAuthUsername() && $this->getDrRefundAuthPassword()) {
-            $url = $this->getDrBaseUrl().'auth';
+        if ($this->getDrBaseUrl($storeCode) && $this->getDrRefundUsername($storeCode) && $this->getDrRefundPassword($storeCode) && $this->getDrRefundAuthUsername($storeCode) && $this->getDrRefundAuthPassword($storeCode)) {
+            $url = $this->getDrBaseUrl($storeCode).'auth';
 
-            $data = ["grant_type" => "password", "username" => $this->getDrRefundUsername(), "password" => $this->getDrRefundPassword()];
+            $data = ["grant_type" => "password", "username" => $this->getDrRefundUsername($storeCode), "password" => $this->getDrRefundPassword($storeCode)];
 
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->setOption(CURLOPT_TIMEOUT, 40);
-            $this->curl->setOption(CURLOPT_USERPWD, $this->getDrRefundAuthUsername() . ":" . $this->getDrRefundAuthPassword());
+            $this->curl->setOption(CURLOPT_USERPWD, $this->getDrRefundAuthUsername($storeCode) . ":" . $this->getDrRefundAuthPassword($storeCode));
             $this->curl->addHeader("Content-Type", 'application/x-www-form-urlencoded');
-            $this->curl->addHeader("x-siteid", $this->getCompanyId());
+            $this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
             $this->curl->post($url, http_build_query($data));
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
@@ -903,131 +905,131 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return type
      */
-    public function getDrPostUrl()
+    public function getDrPostUrl($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_post_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_post_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
     /**
      *
      * @return type
      */
-    public function getDrRefundUrl()
+    public function getDrRefundUrl($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
     /**
      *
      * @return type
      */
-    public function getCompanyId()
+    public function getCompanyId($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/company_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/company_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundUsername()
+    public function getDrRefundUsername($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundPassword()
+    public function getDrRefundPassword($storecode = null)
     {
-        $dr_refund_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_refund_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_refund_pass);
     }
 
-    public function getDrRefundAuthUsername()
+    public function getDrRefundAuthUsername($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundAuthPassword()
+    public function getDrRefundAuthPassword($storecode = null)
     {
-        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_auth_pass);
     }
 
     /**
      * @return mixed|null
      */
-    public function getIsEnabled()
+    public function getIsEnabled($storecode = null)
     {
         $key_enable = 'dr_settings/config/active';
-        return $this->scopeConfig->getValue($key_enable, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($key_enable, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrStoreUrl()
+    public function getDrStoreUrl($storecode = null)
     {
         $key_token_url = 'dr_settings/config/session_token_url';
-        return $this->scopeConfig->getValue($key_token_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($key_token_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrBaseUrl()
+    public function getDrBaseUrl($storecode = null)
     {
         $url_key = 'dr_settings/config/dr_url';
-        return $this->scopeConfig->getValue($url_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($url_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrApiKey()
+    public function getDrApiKey($storecode = null)
     {
-        $dr_key_api = $this->scopeConfig->getValue('dr_settings/config/dr_api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_key_api = $this->scopeConfig->getValue('dr_settings/config/dr_api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_key_api);
     }
     /**
      * @return mixed|null
      */
-    public function getDrAuthUsername()
+    public function getDrAuthUsername($storecode = null)
     {
         $dr_auth_name = 'dr_settings/config/dr_auth_username';
-        return $this->scopeConfig->getValue($dr_auth_name, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_auth_name, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrAuthPassword()
+    public function getDrAuthPassword($storecode = null)
     {
-        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_auth_pass);
     }
 
     /**
      * @return mixed|null
      */
-    public function getIsTestOrder()
+    public function getIsTestOrder($storecode = null)
     {
         $dr_test_key = 'dr_settings/config/testorder';
-        return $this->scopeConfig->getValue($dr_test_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_test_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getEncryptionKey()
+    public function getEncryptionKey($storecode = null)
     {
         $dr_encrypt_key = 'dr_settings/config/encryption_key';
-        return $this->scopeConfig->getValue($dr_encrypt_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_encrypt_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getLocale()
+    public function getLocale($storecode = null)
     {
         $dr_locale = 'dr_settings/config/locale';
-        return $this->scopeConfig->getValue($dr_locale, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_locale, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getShippingOfferId()
+    public function getShippingOfferId($storecode = null)
     {
         $dr_offer = 'dr_settings/config/offer_id';
-        return $this->scopeConfig->getValue($dr_offer, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_offer, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     
     /**
@@ -1127,6 +1129,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         
         try {
             if ($order->getDrOrderId()) {
+                $storeCode = $order->getStore()->getCode();
                 $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
 
                 if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
@@ -1138,7 +1141,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         "requisitionID"             => $item['requisitionID'],
                         "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
                         "lineItemID"                => $itemId,
-                        "fulfillmentCompanyID"      => $this->getCompanyId(),
+                        "fulfillmentCompanyID"      => $this->getCompanyId($storeCode),
                         "electronicFulfillmentNoticeItems" => [
                             "item" => [
                                 [
@@ -1158,7 +1161,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                 $this->curl->setOption(CURLOPT_TIMEOUT, 40);
                 $this->curl->addHeader("Content-Type", "application/json");
-                $this->curl->post($this->getDrPostUrl(), $this->jsonHelper->jsonEncode($request));
+                $this->curl->post($this->getDrPostUrl($storeCode), $this->jsonHelper->jsonEncode($request));
                 $result     = $this->curl->getBody();
                 $statusCode = $this->curl->getStatus();
 
@@ -1231,6 +1234,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         
         try {
             if ($order->getDrOrderId()) {
+                $storeCode = $order->getStore()->getCode();
                 $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
 
                 if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
@@ -1242,7 +1246,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         "requisitionID"             => $item['requisitionID'],
                         "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
                         "lineItemID"                => $itemId,
-                        "fulfillmentCompanyID"      => $this->getCompanyId(),
+                        "fulfillmentCompanyID"      => $this->getCompanyId($storeCode),
                         "electronicFulfillmentNoticeItems" => [
                             "item" => [
                                 [
@@ -1262,7 +1266,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                 $this->curl->setOption(CURLOPT_TIMEOUT, 40);
                 $this->curl->addHeader("Content-Type", "application/json");
-                $this->curl->post($this->getDrPostUrl(), $this->jsonHelper->jsonEncode($request));
+                $this->curl->post($this->getDrPostUrl($storeCode), $this->jsonHelper->jsonEncode($request));
                 $result     = $this->curl->getBody();
                 $statusCode = $this->curl->getStatus();
 
