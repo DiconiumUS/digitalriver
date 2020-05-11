@@ -290,7 +290,8 @@ function loadScriptCard(url, callback){
 						} 
 						if(jQuery('input[name="selected_card"]').length > 0){ 
 							hideForm(); 
-							tmpHtml = '<div><input type="radio" name="selected_card" value="" onclick="showForm()"/> New Card </div>'; 
+							var newcardlaebl = '<?php echo __('New Card')?>';
+							tmpHtml = '<div><input type="radio" name="selected_card" value="" onclick="showForm()"/>'+ newcardlaebl +'</div>'; 
 							jQuery(".saved_cards_inner").append(tmpHtml); 
 							jQuery('input[name="selected_card"]:first').prop('checked', true); 
 							jQuery('.saved_cards_outer').show(); 
