@@ -647,7 +647,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $url = $this->getDrBaseUrl()."v1/shoppers/me/carts/active/submit-cart?expand=all&format=json&ipAddress=".$ip;
             $data = [];
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+            $this->curl->setOption(CURLOPT_TIMEOUT, 60);
             $this->curl->addHeader("Authorization", "Bearer " . $accessToken);
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
