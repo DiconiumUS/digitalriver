@@ -39,7 +39,7 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
     {
         $responseContent = [
             'success'        => false,
-            'content'        => "Unable to process"
+            'content'        => __("Unable to process")
         ];
         $source_id = $this->getRequest()->getParam('source_id');
         $quote = $this->_checkoutSession->getQuote();

@@ -119,8 +119,8 @@ function loadScriptWire(url, callback){
 	                defaultTotal.estimateTotals();
 					if(result.error || result.source.state == "failed") {
 						//Something went wrong, display the error message to the customer
-						document.getElementById('wire-message').innerHTML ="";
-						document.getElementById('wire-message').innerHTML ="Failed to get Source! Please try again.";
+						document.getElementById('wire-message').innerHTML = "";
+						document.getElementById('wire-message').innerHTML = '<?php echo __("Failed to get Source! Please try again.")?>';
 					} else {
 						document.getElementById('wire-message').innerHTML ="";
 						//Success!  You can now send the token to your server for use in downstream API calls.
