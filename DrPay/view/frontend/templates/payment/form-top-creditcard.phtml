@@ -225,9 +225,11 @@ function loadScriptCard(url, callback){
 	} 
 	function hideDrForm(creditCardDetails) { 
 		if(creditCardDetails) { 
+			var edit = '<?php echo __('Edit')?>';
+			var info = '<?php echo __('ending in')?>';
 			var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>"; 
-			var cartinfo = "<div class='card-info'>"+ creditCardDetails.brand + " ending in " + creditCardDetails.lastFourDigits+"</div>";
-			var editlink = "<a class='payment-edit' href = 'javascript:void(0)' id='payment-edit' onclick='displayDrForm()'>Edit</a>";
+			var cartinfo = "<div class='card-info'>"+ creditCardDetails.brand + ' ' + info + ' '+ creditCardDetails.lastFourDigits+"</div>";
+			var editlink = "<a class='payment-edit' href = 'javascript:void(0)' id='payment-edit' onclick='displayDrForm()'>"+edit+"</a>";
 			jQuery("#payment-data").html(title+cartinfo+editlink);						
 			jQuery("#payment-data").css("display","block");
 			jQuery("#payment-data").addClass('payment-active');

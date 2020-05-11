@@ -123,7 +123,7 @@ function loadScriptDebit(url, callback){
                         //Success!  You can now send the token to your server for use in downstream API calls.
                          var source = result.source;
                          var redirectUrl = source.redirect.redirectUrl; 
-                         var edit = "<?= __('Edit') ?>";
+                         var edit = '<?php echo __('Edit')?>';
                          window.checkoutConfig.payment.drpay_direct_debit.redirect_url = redirectUrl;
                          if(redirectUrl){
                             var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
