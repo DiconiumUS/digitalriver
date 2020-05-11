@@ -23,6 +23,11 @@ class TestApi extends Field
     protected $_template = 'Digitalriver_DrPay::testapi.phtml';
 
     /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
      * @param Context                                          $context
      * @param ScopeConfigInterface                             $scopeConfig
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -32,10 +37,12 @@ class TestApi extends Field
         Context $context,
         ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Framework\App\RequestInterface $request,
         array $data = []
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->request = $request;
         parent::__construct($context, $data);
     }
 
@@ -82,16 +89,45 @@ class TestApi extends Field
      */
     public function getApiKey()
     {
+        $storeCode = null;
+        $scope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+        if($this->request->getParam('store') && !empty($this->request->getParam('store'))) {
+            $storeId = $this->request->getParam('store');
+            $storeCode = $this->_storeManager->getStore($storeId)->getCode();
+        }
+       
+        if($this->request->getParam('website') && !empty($this->request->getParam('website'))) {
+            $websiteId = $this->request->getParam('website');
+            $scope = \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE;
+            $storeCode = $this->_storeManager->getWebsite($websiteId)->getCode();
+        }
+        
         $api_key = 'dr_settings/config/dr_api_key';
-        return $this->scopeConfig->getValue($api_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        //$this->scopeConfig->getValue($api_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($api_key, $scope, $storeCode);
     }
     /**
      * @return string
      */
     public function getBaseUrl()
     {
+        
+        $storeCode = null;
+        $scope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+        if($this->request->getParam('store') && !empty($this->request->getParam('store'))) {
+            $storeId = $this->request->getParam('store');
+            $storeCode = $this->_storeManager->getStore($storeId)->getCode();
+        }
+       
+        if($this->request->getParam('website') && !empty($this->request->getParam('website'))) {
+            $websiteId = $this->request->getParam('website');
+            $scope = \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE;
+            $storeCode = $this->_storeManager->getWebsite($websiteId)->getCode();
+        }
+        
         $base_url = 'dr_settings/config/dr_url';
-        return $this->scopeConfig->getValue($base_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        //return $this->scopeConfig->getValue($base_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($base_url, $scope, $storeCode);
     }
 
     /**
