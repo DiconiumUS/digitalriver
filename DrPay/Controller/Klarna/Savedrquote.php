@@ -85,10 +85,11 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 					}
 				}
                 $shipAmnt = $address->getShippingAmount() ? $address->getShippingAmount() : 0;
-				if($tax_inclusive){
-					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;				
-				}
                 $taxAmnt = $address->getTaxAmount() ? $address->getTaxAmount() : 0;
+				if($tax_inclusive){
+					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;		
+					$taxAmnt = 0;
+				}
                 $shipping =  [];
                 $street = $address->getStreet();
                 if (isset($street[0])) {
