@@ -35,6 +35,10 @@ class Success extends \Magento\Framework\App\Action\Action
          */
     protected $regionModel;
     /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session       $customerSession
      * \Magento\Sales\Model\Order $order
@@ -42,6 +46,7 @@ class Success extends \Magento\Framework\App\Action\Action
      * \Digitalriver\DrPay\Helper\Data $helper
      * \Magento\Directory\Model\Region $regionModel
      * \Magento\Quote\Model\QuoteFactory $quoteFactory
+     * @param \Psr\Log\LoggerInterface $logger
      */
 
     public function __construct(
@@ -54,7 +59,8 @@ class Success extends \Magento\Framework\App\Action\Action
 		\Digitalriver\DrPay\Model\DrConnector $drconnector,
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Quote\Api\CartManagementInterface $quoteManagement,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory
+        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        \Psr\Log\LoggerInterface $logger
     ) {
         $this->customerSession = $customerSession;
         $this->order = $order;
@@ -65,6 +71,7 @@ class Success extends \Magento\Framework\App\Action\Action
         $this->drconnector = $drconnector;
 		$this->jsonHelper = $jsonHelper;
 		$this->quoteManagement = $quoteManagement;
+        $this->logger = $logger;
         return parent::__construct($context);
     }
     
@@ -145,14 +152,22 @@ class Success extends \Magento\Framework\App\Action\Action
                         } // end: if
                     }
                 }
-            } catch (\Magento\Framework\Exception\LocalizedException $ex) {
-                $this->messageManager->addError(__('Sorry! An error occured, Try again later.'));
-                $this->helper->cancelDROrder($quote, $result);
+            } catch (\Magento\Framework\Exception\LocalizedException $le) {
+                $this->logger->error('Paypal Error : '.json_encode($le->getRawMessage()));
+                $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
+                // If exception thrown from DR calls, then $result may be emtpy which will lead to another error
+                if(!empty($result) && is_array($result)) {
+                    $this->helper->cancelDROrder($quote, $result);
+                } // end: if
                 $this->_redirect('checkout/cart');
                 return;
-            } catch (Exception $ex) {
-                $this->messageManager->addError(__('Sorry! An error occured, Try again later.'));
-                $this->helper->cancelDROrder($quote, $result);
+            } catch (\Exception $ex) {
+                $this->logger->error('Paypal Error : '.json_encode($ex->getMessage()));
+                $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
+                // If exception thrown from DR calls, then $result may be emtpy which will lead to another error
+                if(!empty($result) && is_array($result)) {
+                    $this->helper->cancelDROrder($quote, $result);
+                } // end: if
                 $this->_redirect('checkout/cart');
                 return;
             } // end: try            
