@@ -30,17 +30,19 @@ function loadScriptCard(url, callback){
 			loadScriptCard(jsUrl, function(){
 		    //After append js set Your API Key and Start DigitalRiver.js
 		    var drcreditcardjs = new DigitalRiver(publicKey);
-
-			var options = getDrCreditCardOptions();
+			
 			//Create your Card Number element
+			var options = getDrCreditCardOptions('cardnumber');
 			var cardNumber = drcreditcardjs.createElement('cardnumber', options);
 			//Place the Card Number element within the container created above.
 			cardNumber.mount('card-number');      
 			//Create your Card Expiration element
+			var options = getDrCreditCardOptions('cardexpiration');
 			var cardExpiration = drcreditcardjs.createElement('cardexpiration', options);
 			//Place the Card Expiration element within the container created above.
 			cardExpiration.mount('card-expiration');
 			//Create your Card Security Code element
+			var options = getDrCreditCardOptions('cardcvv');
 			var cardSecurityCode = drcreditcardjs.createElement('cardcvv', options);
 			//Place the Card Security Code element within the container created above.
 			cardSecurityCode.mount('card-security-code');    
@@ -162,8 +164,17 @@ function loadScriptCard(url, callback){
 			}
 		});
 	}
-	function getDrCreditCardOptions(){
-	return {
+	function getDrCreditCardOptions(element){		
+		if(element == 'cardnumber'){
+			mytext = '<?php echo __("Credit Card Number")?>';
+		}
+		else if(element == 'cardexpiration'){
+			mytext = '<?php echo __("Month/Year")?>';
+		}
+		else{
+			mytext = '<?php echo __("Card Security Code")?>';
+		}
+		response = {
 			classes: {
 				base: "DRElement",
 				complete: "complete",
@@ -191,6 +202,8 @@ function loadScriptCard(url, callback){
 	             }
 	        }
 		};
+		response['placeholderText'] = mytext;
+		return response;
 	}	
 	function displayDrForm(){
 		jQuery(".payment-methods .payment-group .step-title").css("display","block");
