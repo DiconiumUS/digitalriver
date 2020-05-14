@@ -69,6 +69,8 @@ function loadScriptPayPal(url, callback){
 							//Something went wrong, display the error message to the customer
 							document.getElementById('message').innerHTML = "";
 							document.getElementById('message').innerHTML = response.content;
+							document.getElementById('paypal-message').innerHTML = "";
+							document.getElementById('paypal-message').innerHTML = response.content;
 						}
 					},
 				});	

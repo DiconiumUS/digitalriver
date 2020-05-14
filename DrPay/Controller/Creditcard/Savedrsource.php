@@ -41,6 +41,13 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
             'success'        => false,
             'content'        => __("Unable to process")
         ];
+        
+        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $isEnabled = $this->helper->getIsEnabled();
+        if(!$isEnabled) {
+            return $response->setData($responseContent);
+        }
+        
         $source_id = $this->getRequest()->getParam('source_id');
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
@@ -73,7 +80,7 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
             }
         }
 
-        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        
         $response->setData($responseContent);
 
         return $response;

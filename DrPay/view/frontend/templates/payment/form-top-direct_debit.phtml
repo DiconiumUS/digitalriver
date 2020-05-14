@@ -54,6 +54,8 @@ function loadScriptDebit(url, callback){
 							//Something went wrong, display the error message to the customer
 							document.getElementById('message').innerHTML = "";
 							document.getElementById('message').innerHTML = response.content;
+                                                        document.getElementById('directdebit-message').innerHTML = "";
+							document.getElementById('directdebit-message').innerHTML = response.content;
                         }
                     },
                 });    

@@ -69,6 +69,8 @@ function loadScriptKlarna(url, callback){
 							//Something went wrong, display the error message to the customer
 							document.getElementById('message').innerHTML = "";
 							document.getElementById('message').innerHTML = response.content;
+							document.getElementById('klarna-message').innerHTML = "";
+							document.getElementById('klarna-message').innerHTML = response.content;
 						}
 					},
 				});	

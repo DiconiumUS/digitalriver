@@ -48,6 +48,13 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
             'success'        => false,
             'content'        => __("Unable to process")
         ];
+        
+        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $isEnabled = $this->helper->getIsEnabled();
+        if(!$isEnabled) {
+            return $response->setData($responseContent);
+        }
+        
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
@@ -178,7 +185,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 'content'        => $payload
             ];
         }
-        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        
         $response->setData($responseContent);
 
         return $response;

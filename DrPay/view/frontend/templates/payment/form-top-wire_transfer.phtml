@@ -52,8 +52,10 @@ function loadScriptWire(url, callback){
 							//Show Error Message
 							console.log(response);
 							//Something went wrong, display the error message to the customer
-							document.getElementById('message').innerHTML = "";
-							document.getElementById('message').innerHTML = response.content;
+							//document.getElementById('message').innerHTML = "";
+							//document.getElementById('message').innerHTML = response.content;
+                                                        document.getElementById('wire-message').innerHTML = "";
+                                                        document.getElementById('wire-message').innerHTML = response.content;
 						}
 					},
 				});	
@@ -139,8 +141,10 @@ function loadScriptWire(url, callback){
 										continueWireTransfer();
 									}else{
 										//Show Error Message 
-										document.getElementById('message').innerHTML = ""; 
-										document.getElementById('message').innerHTML = response.content;
+										//document.getElementById('message').innerHTML = ""; 
+										//document.getElementById('message').innerHTML = response.content;
+										document.getElementById('wire-message').innerHTML = ""; 
+										document.getElementById('wire-message').innerHTML = response.content;
 										console.log(response);
 									}
 								},

@@ -30,6 +30,13 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
         $responseContent = [
             'success'        => false
         ];
+        
+        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $isEnabled = $this->helper->getIsEnabled();
+        if(!$isEnabled) {
+            return $response->setData($responseContent);
+        }
+        
         if ($this->getRequest()->getParam('source_id')) {
             $source_id = $this->getRequest()->getParam('source_id');
             $paymentResult = $this->helper->applyQuotePayment($source_id);
@@ -41,7 +48,7 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
                 ];
             }
         }
-        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+
         $response->setData($responseContent);
 
         return $response;
