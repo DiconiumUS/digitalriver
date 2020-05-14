@@ -452,9 +452,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$this->session->setDrShippingTax($shippingTax);
 				$this->session->setDrShippingAndHandling($shippingAmount);	
 				if($tax_inclusive){				
-					$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
-				}else{
 					$orderTotal = $productTotal + $shippingAmount;
+				}else{
+					$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
 				}
 
 				$this->session->setDrOrderTotal($orderTotal);
