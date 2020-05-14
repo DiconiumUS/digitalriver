@@ -450,13 +450,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$this->session->setDrProductTotal($productTotal);
 				$this->session->setDrProductTax($productTax);
 				$this->session->setDrShippingTax($shippingTax);
-				if($tax_inclusive){
-					$this->session->setDrShippingAndHandling($result["cart"]["pricing"]["shippingAndHandling"]["value"]);
-				}else{
-					$this->session->setDrShippingAndHandling($result["cart"]["pricing"]["shippingAndHandling"]["value"] + $shippingTax);
-				}
+				$this->session->setDrShippingAndHandling($shippingAmount);				
+				
+				$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
 
-				$this->session->setDrOrderTotal($result['cart']['pricing']['orderTotal']['value']);
+				$this->session->setDrOrderTotal($orderTotal);
 				$this->session->setDrTax($result["cart"]["pricing"]["tax"]["value"]);
 
                 $this->session->setMagentoAppliedTax($address->getTaxAmount());
