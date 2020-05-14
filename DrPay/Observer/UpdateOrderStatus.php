@@ -31,7 +31,8 @@ class UpdateOrderStatus implements ObserverInterface
 		\Magento\Sales\Model\Order $order,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+		\Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
     ) {
         $this->helper =  $helper;
         $this->session = $session;
@@ -39,6 +40,7 @@ class UpdateOrderStatus implements ObserverInterface
         $this->_storeManager = $storeManager;
 		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
+		$this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -77,18 +79,18 @@ class UpdateOrderStatus implements ObserverInterface
 					if($parent_tax_amount > 0){
 						$qty = $orderitem->getQtyOrdered();
 						$total_tax_amount = $parent_tax_amount * $qty;
-						$orderitem->setTaxAmount($total_tax_amount);
-						$orderitem->setBaseTaxAmount($this->convertToBaseCurrency($total_tax_amount));
+						$orderitem->setTaxAmount($this->priceCurrency->round($total_tax_amount));
+						$orderitem->setBaseTaxAmount($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getTaxAmount())));
 						if($tax_inclusive){
 							$orderitem->setPrice($orderitem->getPriceInclTax() - $parent_tax_amount);
 							$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
-							$orderitem->setRowTotal($orderitem->getPrice() * $qty);
-							$orderitem->setBaseRowTotal($this->convertToBaseCurrency($orderitem->getRowTotal()));
+							$orderitem->setRowTotal($this->priceCurrency->round($orderitem->getPrice() * $qty));
+							$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
 						}else{
 							$orderitem->setPriceInclTax($orderitem->getPrice() + $parent_tax_amount);
 							$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPriceInclTax()));
-							$orderitem->setRowTotalInclTax($orderitem->getRowTotal() + $total_tax_amount);
-							$orderitem->setBaseRowTotalInclTax($this->convertToBaseCurrency($orderitem->getRowTotalInclTax()));		
+							$orderitem->setRowTotalInclTax($this->priceCurrency->round($orderitem->getRowTotal() + $total_tax_amount));
+							$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));		
 						}
 					}
 				}
