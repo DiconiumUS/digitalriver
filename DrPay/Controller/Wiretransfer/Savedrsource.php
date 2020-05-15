@@ -37,7 +37,6 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
             $source_id = $this->getRequest()->getParam('source_id');
             $paymentResult = $this->helper->applyQuotePayment($source_id); 
             $accessToken = $this->_checkoutSession->getDrAccessToken();
-            file_put_contents($logfilename, "Wire Source ID: ".$source_id." accessToken: ".$accessToken." Savedrsource result : ".json_encode($paymentResult)."\r\n", FILE_APPEND);
 			$this->_logger->info("Wire Source ID: ".$source_id." accessToken: ".$accessToken." Savedrsource result : ".json_encode($paymentResult));
 
             if($paymentResult){
