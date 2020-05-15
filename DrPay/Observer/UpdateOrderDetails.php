@@ -121,8 +121,8 @@ class UpdateOrderDetails implements ObserverInterface
 				}
 			}
 			if($tax_inclusive){
-				$order->setSubtotal($subtotal);
-				$order->setBaseSubtotal($this->convertToBaseCurrency($subtotal));
+				$order->setSubtotal($this->priceCurrency->round($subtotal));
+				$order->setBaseSubtotal($this->priceCurrency->round(($this->convertToBaseCurrency($subtotal))));
 			}
 			$order->save();
 			$this->session->unsDrAccessToken();

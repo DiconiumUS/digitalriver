@@ -378,8 +378,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $shippingAmount = 0;
 					$shippingMethod = '';
                     $shippingTitle = "Shipping Price";
-                } else {
-                    $shippingAmount = $quote->getShippingAddress()->getShippingAmount();
+                } else {					
+					$shippingAmount = $quote->getShippingAddress()->getShippingAmount();
+					$shippingInclTax = $quote->getShippingAddress()->getShippingInclTax();
+					if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
+	                    $shippingAmount = $shippingInclTax;
+					}
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
                     $shippingTitle = $quote->getShippingAddress()->getShippingDescription();
                 }
