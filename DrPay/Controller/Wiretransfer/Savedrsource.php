@@ -28,7 +28,8 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $responseContent = [
-            'success'        => false
+            'success'        => false,
+            'content'        => __("Unable to process")
         ];      
         if($this->getRequest()->getParam('source_id')){
             $source_id = $this->getRequest()->getParam('source_id');
@@ -44,7 +45,7 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
                     'content'        => $paymentResult
                 ];            
             }
-        } 
+        }
 		$response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $response->setData($responseContent);
 
