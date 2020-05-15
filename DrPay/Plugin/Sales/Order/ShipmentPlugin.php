@@ -21,7 +21,7 @@ class ShipmentPlugin {
     
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->drHelper = $drHelper;
         $this->_logger  = $logger;
@@ -42,7 +42,6 @@ class ShipmentPlugin {
         $items = [];
         
         if ($subject->getId()) {
-            $this->_logger->info('afterRegister(): We cannot register an existing shipment');
             return $result;
         } // end: if
         
@@ -63,19 +62,13 @@ class ShipmentPlugin {
                             "lineItemID"                => $lineItemId,
                             "quantity"                  => $orderItem->getQtyShipped()
                         ];
-                    } else {
-                        $this->_logger->info('afterRegister(): Invalid DR Line Item Id');
-                    } // end: if
-                } else {
-                    $this->_logger->info('afterRegister(): Invalid Order Item Quantity');
-                } // end: if
+                    }
+                }
             } // end: foreach 
             
             if(!empty($items)) {
                 $this->drHelper->createFulfillmentRequestToDr($items, $subject->getOrder());
-            } else {
-                $this->_logger->info('afterRegister: No items to send to DR EFN');
-            } // end: if            
+            }          
         } catch (\Magento\Framework\Exception\LocalizedException $le) {
             $this->_logger->error('Error afterRegister : '.json_encode($le->getRawMessage()));
         } catch (\Exception $ex) {

@@ -35,7 +35,7 @@ class Success extends \Magento\Framework\App\Action\Action
          */
     protected $regionModel;
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var \Digitalriver\DrPay\Logger\Logger
      */
     protected $logger;
     /**
@@ -46,7 +46,7 @@ class Success extends \Magento\Framework\App\Action\Action
      * \Digitalriver\DrPay\Helper\Data $helper
      * \Magento\Directory\Model\Region $regionModel
      * \Magento\Quote\Model\QuoteFactory $quoteFactory
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Digitalriver\DrPay\Logger\Logger $logger
      */
 
     public function __construct(
@@ -60,7 +60,7 @@ class Success extends \Magento\Framework\App\Action\Action
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Quote\Api\CartManagementInterface $quoteManagement,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->customerSession = $customerSession;
         $this->order = $order;
@@ -71,7 +71,7 @@ class Success extends \Magento\Framework\App\Action\Action
         $this->drconnector = $drconnector;
 		$this->jsonHelper = $jsonHelper;
 		$this->quoteManagement = $quoteManagement;
-        $this->logger = $logger;
+        $this->_logger = $logger;
         return parent::__construct($context);
     }
     
@@ -153,7 +153,7 @@ class Success extends \Magento\Framework\App\Action\Action
                     }
                 }
             } catch (\Magento\Framework\Exception\LocalizedException $le) {
-                $this->logger->error('Paypal Error : '.json_encode($le->getRawMessage()));
+                $this->_logger->error('Paypal Error : '.json_encode($le->getRawMessage()));
                 $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
                 // If exception thrown from DR calls, then $result may be emtpy which will lead to another error
                 if(!empty($result) && is_array($result)) {
@@ -162,7 +162,7 @@ class Success extends \Magento\Framework\App\Action\Action
                 $this->_redirect('checkout/cart');
                 return;
             } catch (\Exception $ex) {
-                $this->logger->error('Paypal Error : '.json_encode($ex->getMessage()));
+                $this->_logger->error('Paypal Error : '.json_encode($ex->getMessage()));
                 $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
                 // If exception thrown from DR calls, then $result may be emtpy which will lead to another error
                 if(!empty($result) && is_array($result)) {

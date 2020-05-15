@@ -38,7 +38,8 @@ class Success extends \Magento\Framework\App\Action\Action
 		\Digitalriver\DrPay\Model\DrConnector $drconnector,
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Quote\Api\CartManagementInterface $quoteManagement,
-        QuoteFactory $quoteFactory
+        QuoteFactory $quoteFactory,
+		\Digitalriver\DrPay\Logger\Logger $logger
     ){
         $this->customerSession = $customerSession;
         $this->order = $order;
@@ -49,6 +50,7 @@ class Success extends \Magento\Framework\App\Action\Action
         $this->drconnector = $drconnector;
 		$this->jsonHelper = $jsonHelper;   
 		$this->quoteManagement = $quoteManagement; 
+		$this->_logger = $logger;
         return parent::__construct($context);
     }
     
@@ -65,13 +67,11 @@ class Success extends \Magento\Framework\App\Action\Action
 			 * @var \Magento\Framework\Controller\Result\Redirect $resultRedirect
 			 */
 			$resultRedirect = $this->resultRedirectFactory->create();
-			$fulldir        = explode('app/code',dirname(__FILE__));
-			$logfilename    = $fulldir[0] . 'var/log/drpay-wire.log';
             $accessToken = $this->checkoutSession->getDrAccessToken();			
 			$cartresult = $this->helper->getDrCart();
 			$result = $this->helper->createOrderInDr($accessToken);
 			if($result && isset($result["errors"])){
-				file_put_contents($logfilename, " wire Order Failed "." Quote Id ".$quote->getId(). "\r\n"." -> OrderData".json_encode($result)."\r\n", FILE_APPEND);
+				$this->_logger->info(" wire Order Failed "." Quote Id ".$quote->getId(). "\r\n"." -> OrderData".json_encode($result));
 				$this->messageManager->addError(__('Unable to Place Order!! Payment has been failed'));
 				return $resultRedirect->setPath('checkout/cart');
 			}else{

@@ -18,12 +18,10 @@ class QuotePlugin
     
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Psr\Log\LoggerInterface $logger
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
          $this->drHelper= $drHelper;
          $this->scopeConfig = $scopeConfig;
-         $this->_logger = $logger;
     }
     /**
      * Get DrPay Module Status

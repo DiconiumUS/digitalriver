@@ -28,13 +28,13 @@ class OrderCancelObserver implements ObserverInterface
      *
      * @param \Digitalriver\DrPay\Helper\Data $drHelper
      * @param \Digitalriver\DrPay\Model\DrConnectorFactory
-     * @param \Psr\Log\LoggerInterface
+     * @param \Digitalriver\DrPay\Logger\Logger
      * 
      */
     public function __construct(
         \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory,
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->drFactory    = $drFactory;
         $this->drHelper     = $drHelper;

@@ -25,7 +25,7 @@ class OrderFulfillmentUpdateToDr implements ObserverInterface
      */
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->drHelper = $drHelper;
         $this->_logger  = $logger;
@@ -51,9 +51,7 @@ class OrderFulfillmentUpdateToDr implements ObserverInterface
         
             if(!empty($items)) {                                
                 $this->drHelper->createFulfillmentRequestToDr($items, $order);
-            } else {
-                $this->_logger->info('createFulfillmentRequestToDr: No items to send to DR EFN');
-            } //  end: if
+            }
         } catch (Exception $ex) {
             $this->_logger->error('createFulfillmentRequestToDr Error : '.$ex->getMessage());
         } // end: try      
@@ -88,12 +86,8 @@ class OrderFulfillmentUpdateToDr implements ObserverInterface
                             "lineItemID"                => $lineItemId,
                             "quantity"                  => $orderItem->getQtyInvoiced()
                         ];
-                    } else {
-                        $this->_logger->info('_getInvoiceDetails(): Invalid DR Line Item Id');
-                    } // end: if
-                } else {
-                    $this->_logger->info('_getInvoiceDetails(): Order Item is not virtual');
-                } // end: if
+                    }
+                }
             } // end: foreach
         } catch (Exception $ex) {
             $this->_logger->error('Error from _getInvoiceDetails(): '.$ex->getMessage());

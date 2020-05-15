@@ -18,18 +18,18 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
     /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Checkout\Model\Session       $checkoutSession
-     * @param \Psr\Log\LoggerInterface             $logger
+     * @param \Digitalriver\DrPay\Logger\Logger     $logger
      * @param \Digitalriver\DrPay\Helper\Data       $helper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Psr\Log\LoggerInterface $logger,
+        \Digitalriver\DrPay\Logger\Logger $logger,
         \Digitalriver\DrPay\Helper\Data $helper
     ) {
         $this->helper =  $helper;
         $this->_checkoutSession = $checkoutSession;
-         $this->_logger = $logger;
+        $this->_logger = $logger;
         parent::__construct($context);
     }
     /**

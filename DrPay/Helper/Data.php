@@ -61,7 +61,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
          * @param \Magento\Directory\Model\Region                  $regionModel
          * @param \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory
          * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-         * @param \Psr\Log\LoggerInterface                         $logger
+         * @param \Digitalriver\DrPay\Logger\Logger                $logger
          */
     public function __construct(
         Context $context,
@@ -77,7 +77,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory,
         \Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->session = $session;
         $this->storeManager = $storeManager;
@@ -92,8 +92,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_enc = $enc;
         $this->drFactory = $drFactory;
 		$this->remoteAddress = $remoteAddress;
-        $this->_logger = $logger;
         parent::__construct($context);
+        $this->_logger = $logger;
     }
     /**
      * @return string|null

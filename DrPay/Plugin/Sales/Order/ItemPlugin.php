@@ -24,7 +24,7 @@ class ItemPlugin
     
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->drHelper = $drHelper;
         $this->_logger  = $logger;
@@ -58,12 +58,8 @@ class ItemPlugin
                     ];
                     
                     $this->drHelper->cancelFulfillmentRequestToDr($items, $order);                    
-                } else {
-                    $this->_logger->info('afterCancel: Invalid DR Id');
-                } // end: if
-            } else {
-                $this->_logger->info('afterCancel: Invalid Order Item Qty to Cancel');
-            } // end: if
+                }
+            }
         } catch (\Magento\Framework\Exception\LocalizedException $le) {
             $this->_logger->error('Error afterCancel: '.json_encode($le->getRawMessage()));
         } catch (\Exception $ex) {

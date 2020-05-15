@@ -18,10 +18,12 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
 		\Magento\Checkout\Model\Session $checkoutSession,
-		\Digitalriver\DrPay\Helper\Data $helper
+		\Digitalriver\DrPay\Helper\Data $helper,
+		\Digitalriver\DrPay\Logger\Logger $logger
     ) {
 		$this->helper =  $helper;
 		$this->_checkoutSession = $checkoutSession;
+		$this->_logger = $logger;
 		parent::__construct($context);
     }
 
@@ -34,10 +36,9 @@ class Savedrsource extends \Magento\Framework\App\Action\Action
         if($this->getRequest()->getParam('source_id')){
             $source_id = $this->getRequest()->getParam('source_id');
             $paymentResult = $this->helper->applyQuotePayment($source_id); 
-            $accessToken = $this->_checkoutSession->getDrAccessToken(); 
-            $fulldir        = explode('app/code',dirname(__FILE__)); 
-            $logfilename    = $fulldir[0] . 'var/log/dr-pay-flow.log'; 
+            $accessToken = $this->_checkoutSession->getDrAccessToken();
             file_put_contents($logfilename, "Wire Source ID: ".$source_id." accessToken: ".$accessToken." Savedrsource result : ".json_encode($paymentResult)."\r\n", FILE_APPEND);
+			$this->_logger->info("Wire Source ID: ".$source_id." accessToken: ".$accessToken." Savedrsource result : ".json_encode($paymentResult));
 
             if($paymentResult){
                 $responseContent = [
