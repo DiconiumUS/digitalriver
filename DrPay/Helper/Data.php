@@ -854,7 +854,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $url = $this->getDrRefundUrl($storeCode)."orders/".$order->getDrOrderId()."/refunds";
             $token = $this->generateRefundToken($storeCode);
             if ($token) {
-                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_FULL", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => round($creditmemo->getGrandTotal(), 2)]];
+                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => round($creditmemo->getGrandTotal(), 2)]];
 
                 $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
                 $this->curl->setOption(CURLOPT_TIMEOUT, 40);
