@@ -1,0 +1,35 @@
+Unable to Place Order!! Payment has been failed,Me emme voi käsitellä tilaustasi. Maksun vahvistus epäonnistui.
+KlarnaCredit Checkout has been canceled.,Peruutuspyyntösi Klarna käsittely onnistui. 
+Unable to cancel Klarna Checkout,"Pahoittelemme, mutta Klarna-peruutuksesi käsittelyssä tapahtui virhe."
+Paypal Checkout has been canceled.,Peruutuspyyntösi Paypal käsittely onnistui. 
+Unable to cancel Paypal Checkout,"Pahoittelemme, mutta PayPal-peruutuksesi käsittelyssä tapahtui virhe."
+Make a payment from your new or existing PayPal account.,Suorita maksu uudelta tai olemassa olevalta PayPal-tililtä.
+Tax,Vero
+Unable to Place Order,Me emme voi käsitellä tilaustasi
+Edit,Muokkaa
+Unable to process,Me emme voi käsitellä  
+ending in,päättyy
+New Card,Syötä uusi kortti
+Credit Card Number,Luottokortin numero:
+Month/Year,Kuukausi/Vuosi
+Card Security Code,Kortin tarkistusnumero
+Payment Instructions,Ohjeita maksamista varten
+Please make your payment now to complete your order.,Suorita maksu nyt päättääksesi tilauksesi. 
+Provide your bank with the following wire transfer instruction:,Anna pankillesi seuraavat tilisiirtotiedot:
+Amount:,Määrä
+Wire Transfer Reference Number:,Tilisiirron viitenumero:
+Bank:,Pankki:
+Location:,Sijainti:
+Account Holder:,Tilin haltija:
+Account Number:,Tilinumero:
+Swift Code:,Swift-koodi:
+Expiration Time:,Voimassaolon päättymispäivä
+Payment Information,Maksutiedot
+Place Your Order,Anna tilaus
+Saved Cards,Tallennetut luottokorttitilit
+Expiration Date:,Voimassaolon päättymispäivä
+Save this card for future use,Tallenna tämä tili ja maksutiedot tulevia ostoksia varten.
+Card Name:,Luottokortin nimi
+There is an issue with Refund at DR side,Hyvitys epäonnistui Digital RIver -yrityksessä
+Error! Please check your address and try again.,Virhe! Vahvista osoitteesi. Yritä uudelleen.
+Failed to get Source! Please try again.,Tietojen nouto epäonnistui. Yritä uudelleen.
