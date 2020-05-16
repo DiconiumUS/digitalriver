@@ -866,8 +866,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
 					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
 					if(!$response) return $response;
-					$flag = true;
 				}
+				$flag = true;
                 return $flag;
             }
         }
