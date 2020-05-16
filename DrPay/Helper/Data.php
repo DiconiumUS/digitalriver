@@ -862,10 +862,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					if(!$response) return $response;
 					$grandTotal = $grandTotal - $shippingAmount;
 				}
-                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
-				$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
-				if(!$response) return $response;
-				$flag = true;
+				if($grandTotal > 0){
+					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
+					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+					if(!$response) return $response;
+					$flag = true;
+				}
                 return $flag;
             }
         }
