@@ -494,7 +494,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, json_encode($data));
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
-            $this->_logger->error("Apply Quote Result :".json_encode($result));
+            $this->_logger->info("Apply Quote Result :".json_encode($result));
 
             if (isset($result['errors']) && count($result['errors']['error'])>0) {
                 $result = "";
@@ -520,7 +520,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
-            $this->_logger->error("Apply Quote Result :".json_encode($result));
+            $this->_logger->info("Apply Quote Result :".json_encode($result));
             if (isset($result['errors']) && count($result['errors']['error'])>0) {
                 $result = "";
             }
@@ -862,7 +862,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
                 $this->curl->addHeader("Authorization", "Bearer " . $token);
                 $this->curl->post($url, json_encode($data));
-				$this->_logger->error("Refund Request :".json_encode($data));
+				$this->_logger->info("Refund Request :".json_encode($data));
                 $result = $this->curl->getBody();
                 $result = json_decode($result, true);
                 if (isset($result['errors']) && count($result['errors'])>0) {
@@ -1051,10 +1051,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $errors         = $quote->getErrors();
             $isValidQuote   = (empty($errors)) ? true : false;
         } catch (\Magento\Framework\Exception\LocalizedException $le) {
-            $this->_logger->info('Issue in Quote/Order');
             $this->_logger->error($this->jsonHelper->jsonEncode($le->getRawMessage()));
         } catch (\Exception $e) {
-            $this->_logger->info('Issue in Quote/Order');
             $this->_logger->error($this->jsonHelper->jsonEncode($e->getMessage()));
         } // end: try
         
@@ -1110,7 +1108,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     'telephone'     => $phone
                 ];
             } else {
-                $this->_logger->info('Mandatory Address Details missing');
+                $this->_logger->error('Mandatory Address Details missing');
             }// end: if
         } // end: if
         
