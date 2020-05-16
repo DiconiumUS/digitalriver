@@ -44,7 +44,7 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
     protected $_coreRegistry = null;
 
     protected $product;
-    
+
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Checkout\Model\Session $checkoutSession

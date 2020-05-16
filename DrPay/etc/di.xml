@@ -16,5 +16,24 @@
     </type> 
 	<type name="Magento\Customer\Model\AccountManagement">
         <plugin name="set_guest_email" type="Digitalriver\DrPay\Plugin\AccountManagementPlugin" sortOrder="1"/>
-    </type>  
+    </type>
+    <type name="Magento\Sales\Model\Order\Shipment">
+        <plugin name="salesOrderShipmentRegister" type="Digitalriver\DrPay\Plugin\Sales\Order\ShipmentPlugin" sortOrder="1"/>
+    </type>
+    <type name="Magento\Sales\Model\Order\Item">
+        <plugin name="salesOrderItemCancel" type="Digitalriver\DrPay\Plugin\Sales\Order\ItemPlugin" sortOrder="1"/>
+    </type>
+	<type name="Digitalriver\DrPay\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Digitalriver\DrPay\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">DrLogger</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Digitalriver\DrPay\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

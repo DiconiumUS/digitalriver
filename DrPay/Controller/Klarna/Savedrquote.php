@@ -46,8 +46,15 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
     {
         $responseContent = [
             'success'        => false,
-            'content'        => "Unable to process"
+            'content'        => __("Unable to process")
         ];
+        
+        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $isEnabled = $this->helper->getIsEnabled();
+        if(!$isEnabled) {
+            return $response->setData($responseContent);
+        }
+        
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
@@ -85,10 +92,11 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 					}
 				}
                 $shipAmnt = $address->getShippingAmount() ? $address->getShippingAmount() : 0;
-				if($tax_inclusive){
-					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;				
-				}
                 $taxAmnt = $address->getTaxAmount() ? $address->getTaxAmount() : 0;
+				if($tax_inclusive){
+					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;		
+					$taxAmnt = 0;
+				}
                 $shipping =  [];
                 $street = $address->getStreet();
                 if (isset($street[0])) {
@@ -177,7 +185,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 'content'        => $payload
             ];
         }
-        $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        
         $response->setData($responseContent);
 
         return $response;

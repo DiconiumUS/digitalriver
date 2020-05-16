@@ -10,6 +10,9 @@ var config = {
             'Magento_Checkout/js/view/billing-address': {
                 'Digitalriver_DrPay/js/view/billing-address': true
             },
+            'Magento_Checkout/js/view/payment': {
+                'Digitalriver_DrPay/js/view/payment': true
+            },
         }
     },    
     map: {

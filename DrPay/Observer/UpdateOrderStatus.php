@@ -30,13 +30,17 @@ class UpdateOrderStatus implements ObserverInterface
         \Magento\Checkout\Model\Session $session,
 		\Magento\Sales\Model\Order $order,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Directory\Model\CurrencyFactory $currencyFactory
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+		\Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
     ) {
         $this->helper =  $helper;
         $this->session = $session;
 		$this->order = $order;
         $this->_storeManager = $storeManager;
 		$this->currencyFactory = $currencyFactory;
+		$this->scopeConfig = $scopeConfig;
+		$this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -61,24 +65,33 @@ class UpdateOrderStatus implements ObserverInterface
                 $order->setState(Order::STATE_PAYMENT_REVIEW); 
                 $order->setStatus(Order::STATE_PAYMENT_REVIEW);
             }
+			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 			foreach ($order->getAllVisibleItems() as $orderitem) {
 				if($orderitem->getProductType() == \Magento\Bundle\Model\Product\Type::TYPE_CODE){
 					$parent_tax_amount = 0;
 					foreach($orderitem->getChildrenItems() as $childitem){						
 						$child_tax_amount = $childitem->getPriceInclTax() - $childitem->getPrice();
 						if($child_tax_amount > 0){
-							$parent_tax_amount = $parent_tax_amount + $child_tax_amount;
+							$qty = $childitem->getQtyOrdered();
+							$parent_tax_amount = $parent_tax_amount + ($child_tax_amount * $qty);
 						}
 					}
 					if($parent_tax_amount > 0){
-						$qty = $childitem->getQtyOrdered();
+						$qty = $orderitem->getQtyOrdered();
 						$total_tax_amount = $parent_tax_amount * $qty;
-						$orderitem->setTaxAmount($total_tax_amount);
-						$orderitem->setBaseTaxAmount($this->convertToBaseCurrency($total_tax_amount));
-						$orderitem->setPriceInclTax($orderitem->getPrice() + $parent_tax_amount);
-						$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPrice() + $parent_tax_amount));
-						$orderitem->setRowTotalInclTax($orderitem->getRowTotal() + $total_tax_amount);
-						$orderitem->setBaseRowTotalInclTax($this->convertToBaseCurrency($orderitem->getRowTotal() + $total_tax_amount));				
+						$orderitem->setTaxAmount($this->priceCurrency->round($total_tax_amount));
+						$orderitem->setBaseTaxAmount($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getTaxAmount())));
+						if($tax_inclusive){
+							$orderitem->setPrice($orderitem->getPriceInclTax() - $parent_tax_amount);
+							$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
+							$orderitem->setRowTotal($this->priceCurrency->round($orderitem->getPrice() * $qty));
+							$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
+						}else{
+							$orderitem->setPriceInclTax($orderitem->getPrice() + $parent_tax_amount);
+							$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPriceInclTax()));
+							$orderitem->setRowTotalInclTax($this->priceCurrency->round($orderitem->getRowTotal() + $total_tax_amount));
+							$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));		
+						}
 					}
 				}
 			}

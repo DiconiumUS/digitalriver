@@ -12,10 +12,14 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 {
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
 		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->setCode('dr_tax');
         $this->_checkoutSession = $checkoutSession;
+        $this->_storeManager = $storeManager;
+		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
     }
     
@@ -37,34 +41,42 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $items = $shippingAssignment->getItems();
         if (!count($items)) {
             return $this;
-        }
+        }	
+		
+		$accessToken = $this->_checkoutSession->getDrAccessToken();
+		if(!empty($accessToken)){
+			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+			$drtax = $this->_checkoutSession->getDrTax();
+			$productTotal = $this->_checkoutSession->getDrProductTotal();
+			$productTax = $this->_checkoutSession->getDrProductTax();
+			$shippingTax = $this->_checkoutSession->getDrShippingTax();
+			$shippingAndHandling = $this->_checkoutSession->getDrShippingAndHandling();
+			$orderTotal = $this->_checkoutSession->getDrOrderTotal();
 
-        $drtax = $this->_checkoutSession->getDrTax();
-        $magentoTax = $total->getTaxAmount();
-        $quote->setDrTax($drtax);
-        $total->setDrTax($drtax);
-        $total->setTaxAmount($drtax);
-		$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        //$magentoTax = $this->_checkoutSession->getMagentoAppliedTax();
-        $baseGrandTotal = ($total->getBaseGrandTotal())?$total->getBaseGrandTotal():0;
-        $grandTotal = ($total->getGrandTotal())?$total->getGrandTotal():0;
-		if(!$tax_inclusive){
-			if ($baseGrandTotal > 0 && $grandTotal > 0) {
-				$total->setBaseGrandTotal($total->getBaseGrandTotal() - $magentoTax + $drtax);
-				$total->setGrandTotal($total->getGrandTotal() - $magentoTax + $drtax);
+			if($tax_inclusive){
+				$total->setSubtotalInclTax($productTotal);
+				$total->setSubtotal($productTotal - $productTax);
+				
+				$total->setShippingInclTax($shippingAndHandling);
+				$total->setShippingAmount($shippingAndHandling - $shippingTax);
+				$total->setShippingTaxAmount($shippingTax);
+				$total->setBaseShippingTaxAmount($this->convertToBaseCurrency($shippingTax));
+			} else {
+				$total->setSubtotalInclTax($productTotal + $productTax);
+				$total->setSubtotal($productTotal);
+				
+				$total->setShippingInclTax($shippingAndHandling + $shippingTax);
+				$total->setShippingAmount($shippingAndHandling);
+				$total->setShippingTaxAmount($shippingTax);
+				$total->setBaseShippingTaxAmount($this->convertToBaseCurrency($shippingTax));
 			}
-		}else{
-			$drshipping = $this->_checkoutSession->getDrShipping();
-			if($drshipping > 0){
-				$magentoShipping = $total->getShippingAmount();
-				$total->setShippingInclTax($drshipping);
-				$baseGrandTotal = ($total->getBaseGrandTotal())?$total->getBaseGrandTotal():0;
-				$grandTotal = ($total->getGrandTotal())?$total->getGrandTotal():0;
-				if ($baseGrandTotal > 0 && $grandTotal > 0) {
-					$total->setBaseGrandTotal($total->getBaseGrandTotal() - $magentoShipping + $drshipping);
-					$total->setGrandTotal($total->getGrandTotal() - $magentoShipping + $drshipping);
-				}
-			}
+			
+			$total->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
+			$total->setGrandTotal($orderTotal);
+
+			$quote->setDrTax($drtax);
+			$total->setDrTax($drtax);
+			$total->setTaxAmount($drtax);
 		}
         return $this;
     }
@@ -91,5 +103,13 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ];
         
         return $result;
+    }
+
+	public function convertToBaseCurrency($price){
+        $currentCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+        $baseCurrency = $this->_storeManager->getStore()->getBaseCurrency()->getCode();
+        $rate = $this->currencyFactory->create()->load($currentCurrency)->getAnyRate($baseCurrency);
+        $returnValue = $price * $rate;
+        return $returnValue;
     }
 }

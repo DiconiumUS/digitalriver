@@ -21,7 +21,7 @@ class OrderStatusObserver implements ObserverInterface
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper
     ) {
-        $this->drHelper = $drHelper;
+        $this->drHelper = $drHelper;        
     }
 
     /**
@@ -36,10 +36,6 @@ class OrderStatusObserver implements ObserverInterface
 
             switch ($order->getStatus()) {
                 case Order::STATE_COMPLETE:
-                    $statusCode = $this->drHelper->postDrRequest($order);
-					$this->updateOrderComment($statusCode, $order);
-                    break;
-                case Order::STATE_CANCELED:
                     $statusCode = $this->drHelper->postDrRequest($order);
 					$this->updateOrderComment($statusCode, $order);
                     break;

@@ -69,6 +69,8 @@ function loadScriptPayPal(url, callback){
 							//Something went wrong, display the error message to the customer
 							document.getElementById('message').innerHTML = "";
 							document.getElementById('message').innerHTML = response.content;
+							document.getElementById('paypal-message').innerHTML = "";
+							document.getElementById('paypal-message').innerHTML = response.content;
 						}
 					},
 				});	
@@ -80,8 +82,9 @@ function loadScriptPayPal(url, callback){
 	function continuePaypalOrder()
 	{
 		require(["jquery"], function ($) {		
+			var edit = '<?php echo __('Edit')?>';
 			var title = "<div class='title'>"+$(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
-			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-paypal' onclick='displayPaypalForm()'>Edit</a>";
+			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-paypal' onclick='displayPaypalForm()'>"+edit+"</a>";
 			$("#payment-data_paypal").html(title+editlink);						
 			$("#payment-data_paypal").css("display","block");
 			$("#payment-data_paypal").addClass('payment-active');

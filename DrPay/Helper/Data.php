@@ -61,7 +61,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
          * @param \Magento\Directory\Model\Region                  $regionModel
          * @param \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory
          * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-         * @param \Psr\Log\LoggerInterface                         $logger
+         * @param \Digitalriver\DrPay\Logger\Logger                $logger
          */
     public function __construct(
         Context $context,
@@ -77,7 +77,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory,
         \Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
-        \Psr\Log\LoggerInterface $logger
+        \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->session = $session;
         $this->storeManager = $storeManager;
@@ -92,8 +92,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_enc = $enc;
         $this->drFactory = $drFactory;
 		$this->remoteAddress = $remoteAddress;
-        $this->_logger = $logger;
         parent::__construct($context);
+        $this->_logger = $logger;
     }
     /**
      * @return string|null
@@ -298,7 +298,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 $data["cart"]["lineItems"] = $lineItems;
                 $address = $quote->getBillingAddress();
-                if ($address && $address->getId() && $address->getCity()) {
+                if ($address && $address->getCity()) {
                     $billingAddress =  [];
                     $billingAddress["id"] = "billingAddress";
                     $billingAddress["firstName"] = $address->getFirstname();
@@ -316,7 +316,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     $billingAddress["line3"] = "";
                     $billingAddress["city"] = $address->getCity();
-                    $billingAddress["countrySubdivision"] = '';
+                    $billingAddress["countrySubdivision"] = 'na';
                     $regionName = $address->getRegion();
                     if ($regionName) {
                         $countryId = $address->getCountryId();
@@ -353,11 +353,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                         $shippingAddress["line3"] = "";
                         $shippingAddress["city"] = $address->getCity();
-                        $shippingAddress["countrySubdivision"] = '';
+                        $shippingAddress["countrySubdivision"] = 'na';
                         $regionName = $address->getRegion();
                         if ($regionName) {
 							if(is_array($regionName)){
-								$shippingAddress["countrySubdivision"] = '';
+								$shippingAddress["countrySubdivision"] = 'na';
 							}else{
 								$countryId = $address->getCountryId();
 								$region = $this->regionModel->loadByName($regionName, $countryId);
@@ -378,8 +378,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $shippingAmount = 0;
 					$shippingMethod = '';
                     $shippingTitle = "Shipping Price";
-                } else {
-                    $shippingAmount = $quote->getShippingAddress()->getShippingAmount();
+                } else {					
+					$shippingAmount = $quote->getShippingAddress()->getShippingAmount();
+					$shippingInclTax = $quote->getShippingAddress()->getShippingInclTax();
+					if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
+	                    $shippingAmount = $shippingInclTax;
+					}
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
                     $shippingTitle = $quote->getShippingAddress()->getShippingDescription();
                 }
@@ -434,15 +438,32 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->session->setDrQuoteError(false);
                 $drquoteId = $result["cart"]["id"];
                 $this->session->setDrQuoteId($drquoteId);
-				if($tax_inclusive){
-					$shippingAndHandling = $result["cart"]["pricing"]["shippingAndHandling"]["value"];
-					$drtax = 0;
-				} else {
-					$drtax = $result["cart"]["pricing"]["tax"]["value"];
-					$shippingAndHandling = 0;
+				
+				$shippingTax = 0;
+				$productTax = 0;
+				$productTotal = 0;
+				if(isset($result["cart"]['lineItems']) && isset($result["cart"]['lineItems']['lineItem'])) {					
+					$lineItems = $result["cart"]['lineItems']['lineItem'];
+					foreach($lineItems as $item){
+						$productTax += $item['pricing']['productTax']['value'];
+						$shippingTax += $item['pricing']['shippingTax']['value'];
+						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+					}
 				}
-                $this->session->setDrTax($drtax);
-				$this->session->setDrShipping($shippingAndHandling);
+				
+				$this->session->setDrProductTotal($productTotal);
+				$this->session->setDrProductTax($productTax);
+				$this->session->setDrShippingTax($shippingTax);
+				$this->session->setDrShippingAndHandling($shippingAmount);	
+				if($tax_inclusive){				
+					$orderTotal = $productTotal + $shippingAmount;
+				}else{
+					$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
+				}
+
+				$this->session->setDrOrderTotal($orderTotal);
+				$this->session->setDrTax($result["cart"]["pricing"]["tax"]["value"]);
+
                 $this->session->setMagentoAppliedTax($address->getTaxAmount());
                 if ($return) {
                     return $result;
@@ -473,7 +494,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, json_encode($data));
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
-            $this->_logger->error("Apply Quote Result :".json_encode($result));
+            $this->_logger->info("Apply Quote Result :".json_encode($result));
 
             if (isset($result['errors']) && count($result['errors']['error'])>0) {
                 $result = "";
@@ -499,7 +520,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
-            $this->_logger->error("Apply Quote Result :".json_encode($result));
+            $this->_logger->info("Apply Quote Result :".json_encode($result));
             if (isset($result['errors']) && count($result['errors']['error'])>0) {
                 $result = "";
             }
@@ -631,11 +652,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $url = $this->getDrBaseUrl()."v1/shoppers/me/carts/active/submit-cart?expand=all&format=json&ipAddress=".$ip;
             $data = [];
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+            $this->curl->setOption(CURLOPT_TIMEOUT, 60);
             $this->curl->addHeader("Authorization", "Bearer " . $accessToken);
             $this->curl->post($url, $data);
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
+            $this->_logger->info("createOrderInDr Result :".json_encode($result));
             return $result;
         }
         return;
@@ -707,8 +729,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             if ($drModel->getPostStatus() == 1) {
                 return;
             }
-            $url = $this->getDrPostUrl();
-            $fulFillmentPost = $this->getFulFillmentPostRequest($order);
+            $storeCode = $order->getStore()->getCode();
+            $url = $this->getDrPostUrl($storeCode);
+            $fulFillmentPost = $this->getFulFillmentPostRequest($order, $storeCode);
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->setOption(CURLOPT_TIMEOUT, 40);
             $this->curl->addHeader("Content-Type", "application/json");
@@ -729,7 +752,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param type $order
      * @return type
      */
-    public function getFulFillmentPostRequest($order)
+    public function getFulFillmentPostRequest($order, $storeCode = null)
     {
 
         $status = '';
@@ -760,7 +783,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     ["requisitionID" => $order->getDrOrderId(),
                         "noticeExternalReferenceID" => $order->getIncrementId(),
                         "lineItemID" => $item['lineitemid'],
-                        "fulfillmentCompanyID" => $this->getCompanyId(),
+                        "fulfillmentCompanyID" => $this->getCompanyId($storeCode),
                         "electronicFulfillmentNoticeItems" => [
                             "item" => [
                                 [
@@ -827,49 +850,66 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $order = $creditmemo->getOrder();
         $flag = false;
         if ($order->getDrOrderId()) {
-            $url = $this->getDrRefundUrl()."orders/".$order->getDrOrderId()."/refunds";
-            $token = $this->generateRefundToken();
+            $storeCode = $order->getStore()->getCode();
+            $url = $this->getDrRefundUrl($storeCode)."orders/".$order->getDrOrderId()."/refunds";
+            $token = $this->generateRefundToken($storeCode);
             if ($token) {
-                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_FULL", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => round($creditmemo->getGrandTotal(), 2)]];
-
-                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
-                $this->curl->addHeader("Content-Type", "application/json");
-                $this->curl->addHeader("x-siteid", $this->getCompanyId());
-                $this->curl->addHeader("Authorization", "Bearer " . $token);
-                $this->curl->post($url, json_encode($data));
-				$this->_logger->error("Refund Request :".json_encode($data));
-                $result = $this->curl->getBody();
-                $result = json_decode($result, true);
-                if (isset($result['errors']) && count($result['errors'])>0) {
-					$this->_logger->error("Refund Error :".json_encode($result));
-                    $flag = false;
-                } else {
-                    $flag = true;
-                }
-
+				$grandTotal = round($creditmemo->getGrandTotal(), 2);
+				$shippingAmount = round($creditmemo->getShippingInclTax(), 2);
+				if($shippingAmount > 0){
+					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_SHIPPING", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $shippingAmount]];
+					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+					if(!$response) return $response;
+					$grandTotal = $grandTotal - $shippingAmount;
+				}
+				if($grandTotal > 0){
+					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
+					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+					if(!$response) return $response;
+				}
+				$flag = true;
                 return $flag;
             }
         }
         return $flag;
     }
+	
+	public function curlRefundRequest($drOrderId, $data, $token, $storeCode)
+	{
+		$flag = true;
+		$this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+		$this->curl->setOption(CURLOPT_TIMEOUT, 40);
+		$this->curl->addHeader("Content-Type", "application/json");
+		$this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
+		$this->curl->addHeader("Authorization", "Bearer " . $token);
+		$url = $this->getDrRefundUrl($storeCode)."orders/".$drOrderId."/refunds";
+		$this->curl->post($url, json_encode($data));
+		$this->_logger->info("Refund Request :".json_encode($data));
+		$result = $this->curl->getBody();
+		$result = json_decode($result, true);
+		if (isset($result['errors']) && count($result['errors'])>0) {
+			$this->_logger->error("Refund Error :".json_encode($result));
+			$flag = false;
+		}
+		return $flag;
+	}
     /**
      *
      * @return type
      */
-    public function generateRefundToken()
+    public function generateRefundToken($storeCode = null)
     {
         $token = '';
-        if ($this->getDrBaseUrl() && $this->getDrRefundUsername() && $this->getDrRefundPassword() && $this->getDrRefundAuthUsername() && $this->getDrRefundAuthPassword()) {
-            $url = $this->getDrBaseUrl().'auth';
+        if ($this->getDrBaseUrl($storeCode) && $this->getDrRefundUsername($storeCode) && $this->getDrRefundPassword($storeCode) && $this->getDrRefundAuthUsername($storeCode) && $this->getDrRefundAuthPassword($storeCode)) {
+            $url = $this->getDrBaseUrl($storeCode).'auth';
 
-            $data = ["grant_type" => "password", "username" => $this->getDrRefundUsername(), "password" => $this->getDrRefundPassword()];
+            $data = ["grant_type" => "password", "username" => $this->getDrRefundUsername($storeCode), "password" => $this->getDrRefundPassword($storeCode)];
 
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->setOption(CURLOPT_TIMEOUT, 40);
-            $this->curl->setOption(CURLOPT_USERPWD, $this->getDrRefundAuthUsername() . ":" . $this->getDrRefundAuthPassword());
+            $this->curl->setOption(CURLOPT_USERPWD, $this->getDrRefundAuthUsername($storeCode) . ":" . $this->getDrRefundAuthPassword($storeCode));
             $this->curl->addHeader("Content-Type", 'application/x-www-form-urlencoded');
-            $this->curl->addHeader("x-siteid", $this->getCompanyId());
+            $this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
             $this->curl->post($url, http_build_query($data));
             $result = $this->curl->getBody();
             $result = json_decode($result, true);
@@ -886,131 +926,131 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return type
      */
-    public function getDrPostUrl()
+    public function getDrPostUrl($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_post_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_post_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
     /**
      *
      * @return type
      */
-    public function getDrRefundUrl()
+    public function getDrRefundUrl($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
     /**
      *
      * @return type
      */
-    public function getCompanyId()
+    public function getCompanyId($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/company_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/company_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundUsername()
+    public function getDrRefundUsername($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundPassword()
+    public function getDrRefundPassword($storecode = null)
     {
-        $dr_refund_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_refund_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_refund_pass);
     }
 
-    public function getDrRefundAuthUsername()
+    public function getDrRefundAuthUsername($storecode = null)
     {
-        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
 
-    public function getDrRefundAuthPassword()
+    public function getDrRefundAuthPassword($storecode = null)
     {
-        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_auth_pass);
     }
 
     /**
      * @return mixed|null
      */
-    public function getIsEnabled()
+    public function getIsEnabled($storecode = null)
     {
         $key_enable = 'dr_settings/config/active';
-        return $this->scopeConfig->getValue($key_enable, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($key_enable, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrStoreUrl()
+    public function getDrStoreUrl($storecode = null)
     {
         $key_token_url = 'dr_settings/config/session_token_url';
-        return $this->scopeConfig->getValue($key_token_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($key_token_url, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrBaseUrl()
+    public function getDrBaseUrl($storecode = null)
     {
         $url_key = 'dr_settings/config/dr_url';
-        return $this->scopeConfig->getValue($url_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($url_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrApiKey()
+    public function getDrApiKey($storecode = null)
     {
-        $dr_key_api = $this->scopeConfig->getValue('dr_settings/config/dr_api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_key_api = $this->scopeConfig->getValue('dr_settings/config/dr_api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_key_api);
     }
     /**
      * @return mixed|null
      */
-    public function getDrAuthUsername()
+    public function getDrAuthUsername($storecode = null)
     {
         $dr_auth_name = 'dr_settings/config/dr_auth_username';
-        return $this->scopeConfig->getValue($dr_auth_name, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_auth_name, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getDrAuthPassword()
+    public function getDrAuthPassword($storecode = null)
     {
-        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_auth_pass);
     }
 
     /**
      * @return mixed|null
      */
-    public function getIsTestOrder()
+    public function getIsTestOrder($storecode = null)
     {
         $dr_test_key = 'dr_settings/config/testorder';
-        return $this->scopeConfig->getValue($dr_test_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_test_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getEncryptionKey()
+    public function getEncryptionKey($storecode = null)
     {
         $dr_encrypt_key = 'dr_settings/config/encryption_key';
-        return $this->scopeConfig->getValue($dr_encrypt_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_encrypt_key, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getLocale()
+    public function getLocale($storecode = null)
     {
         $dr_locale = 'dr_settings/config/locale';
-        return $this->scopeConfig->getValue($dr_locale, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_locale, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     /**
      * @return mixed|null
      */
-    public function getShippingOfferId()
+    public function getShippingOfferId($storecode = null)
     {
         $dr_offer = 'dr_settings/config/offer_id';
-        return $this->scopeConfig->getValue($dr_offer, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue($dr_offer, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
     }
     
     /**
@@ -1027,10 +1067,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $errors         = $quote->getErrors();
             $isValidQuote   = (empty($errors)) ? true : false;
         } catch (\Magento\Framework\Exception\LocalizedException $le) {
-            $this->_logger->info('Issue in Quote/Order');
             $this->_logger->error($this->jsonHelper->jsonEncode($le->getRawMessage()));
         } catch (\Exception $e) {
-            $this->_logger->info('Issue in Quote/Order');
             $this->_logger->error($this->jsonHelper->jsonEncode($e->getMessage()));
         } // end: try
         
@@ -1038,67 +1076,236 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     } // end: functoin validateQuote
     
     /**
-     * Function to fetch Shipping address from result
+     * Function to fetch Billing & Shipping address from DR order creation response
      * 
-     * @param array $shipResult
+     * @param string $type | 'billing' or 'shipping'
+     * @param array $drResponse
      * 
      * @return array $returnAddress
      */
-    public function getPaymentShippingAddress($shipResult) {
-        $returnAddress  = [];       
-        $this->_logger->info('ShipResult: '.json_encode($shipResult));
-        $paymentShipAds = $shipResult['cart']['paymentMethod'];
-        
-        if(!empty($paymentShipAds[$paymentShipAds['type']]) && !empty($paymentShipAds[$paymentShipAds['type']]['shipping'])) {
-            // Data = {recipient=Sekar German, phoneNumber=408-375-6883, address={line1=Test street, city=Melbourne, state=Vic, country=AU, postalCode=3000}}
-            $res = explode('{', $paymentShipAds[$paymentShipAds['type']]['shipping']);
-            $shippingAds = [];
+    public function getDrAddress($type, $drResponse) {
+        $returnAddress  = [];   
+        $drAddress      = null;
 
-            array_walk($res, function($v, $k) use (&$shippingAds) {
-                if(!empty($v)) {
-                    $v          = preg_replace('/\}/', '', $v);
-                    $key_val    = explode(',', $v);
-                    
-                    array_walk($key_val, function($val, $key) use (&$shippingAds){
-                        $kv = explode('=', $val);
-                        
-                        if(count($kv) >= 2 && !empty($kv[1])) {
-                            $shippingAds[trim($kv[0])] = trim($kv[1]);
-                        } // end: if
-                    });
-                } // end: if
-            });
+        if(!empty($type) && !empty($drResponse['submitCart'])) {         
+            if($type == 'billing') {
+                $drAddress = isset($drResponse['submitCart']['billingAddress']) ? $drResponse['submitCart']['billingAddress'] : null;
+            } else if($type == 'shipping') {
+                $drAddress = isset($drResponse['submitCart']['shippingAddress']) ? $drResponse['submitCart']['shippingAddress'] : null;
+            } else {
+                $this->_logger->error('Address Type missing');
+                return $returnAddress;
+            } // end: if 
+        } // end: if
+
+        if(!empty($drAddress) && is_array($drAddress)) {            
+            $addressFields = ['firstName', 'line1', 'city', 'countrySubdivision', 'postalCode', 'country', 'phoneNumber'];
             
-            $addressFields = ['recipient', 'line1', 'state', 'country', 'postalCode', 'phoneNumber'];
-            
-            if(count(array_diff($addressFields, array_keys($shippingAds))) == 0) {
+            if(count(array_diff($addressFields, array_keys($drAddress))) == 0) {
                 // Get Region details
-                $region = $this->regionModel->loadByCode($shippingAds['state'], $shippingAds['country'])->getData();
+                $region = $this->regionModel->loadByCode($drAddress['countrySubdivision'], $drAddress['country'])->getData();
 
-                $street = $shippingAds['line1'];
-                $street .= (!empty($shippingAds['line2'])) ? (' '.$shippingAds['line2']) : null;
-                $street .= (!empty($shippingAds['line3'])) ? (' '.$shippingAds['line3']) : null;
+                $street = $drAddress['line1'];
+                $street .= (!empty($drAddress['line2'])) ? (' '.$drAddress['line2']) : null;
+                $street .= (!empty($drAddress['line3'])) ? (' '.$drAddress['line3']) : null;
 
                 $street = trim($street);
-                $phone  = str_replace('-', '', $shippingAds['phoneNumber']);
-                $name   = explode(' ', $shippingAds['recipient']);
+                $phone  = str_replace('-', '', $drAddress['phoneNumber']);
 
                 $returnAddress = [
-                    'firstname'     => (!empty($name[0])) ? trim($name[0]) : null,
-                    'lastname'      => (!empty($name[1])) ? trim($name[1]) : null,
+                    'firstname'     => (!empty($drAddress['firstName'])) ? trim($drAddress['firstName']) : null,
+                    'lastname'      => (!empty($drAddress['lastName'])) ? trim($drAddress['lastName']) : null,
                     'street'        => $street,
-                    'city'          => $shippingAds['city'],
-                    'postcode'      => $shippingAds['postalCode'],
-                    'country_id'    => $shippingAds['country'],
+                    'city'          => $drAddress['city'],
+                    'postcode'      => $drAddress['postalCode'],
+                    'country_id'    => $drAddress['country'],
                     'region'        => !empty($region['name']) ? $region['name'] : null,
                     'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
                     'telephone'     => $phone
                 ];
             } else {
-                $this->_logger->info('Mandatory Payment Details missing');
-            }            
+                $this->_logger->error('Mandatory Address Details missing');
+            }// end: if
         } // end: if
-                
+        
         return $returnAddress;
-    } // end: function getPaymentShippingAddress
+    } // end: function getDrAddress  
+    
+    /**
+     * Function to send EFN request to DR when Invoice/Shipment created from Magento Admin
+     * Only Invoice/Shipment Success cases are sent
+     * 
+     * @param array $lineItems
+     * @param object $order
+     * 
+     * @return array $result
+     */
+    public function createFulfillmentRequestToDr($lineItems, $order) {
+        $items      = [];
+        $request    = [];
+        $status         = 'Completed';
+        $responseCode   = 'Success';   
+        
+        try {
+            if ($order->getDrOrderId()) {
+                $storeCode = $order->getStore()->getCode();
+                $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
+
+                if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
+                    return;
+                } // end: if
+                
+                foreach ($lineItems as $itemId => $item) {
+                    $items['item'][] = [
+                        "requisitionID"             => $item['requisitionID'],
+                        "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
+                        "lineItemID"                => $itemId,
+                        "fulfillmentCompanyID"      => $this->getCompanyId($storeCode),
+                        "electronicFulfillmentNoticeItems" => [
+                            "item" => [
+                                [
+                                    "status"                => $status,
+                                    "reasonCode"            => $responseCode,
+                                    "quantity"              => $item['quantity'],
+                                    "electronicContentType" => "EntitlementDetail",
+                                    "electronicContent"     => "magentoEventID"
+                                ]
+                            ]
+                        ]
+                    ];
+                } // end: foreach
+
+                $request['ElectronicFulfillmentNoticeArray'] = $items;
+
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->post($this->getDrPostUrl($storeCode), $this->jsonHelper->jsonEncode($request));
+                $result     = $this->curl->getBody();
+                $statusCode = $this->curl->getStatus();
+
+                // Status Update: Exsisting code used according to review changes
+                if ($statusCode == '200') {
+                    // Post Status updated only if entire order items are fulfilled
+                    if($this->getPendingFulfillment($order)) {
+                        // if all the quantites are satisfied then mark as 1
+                        $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
+                        $drModel->setPostStatus(1);
+                        $drModel->save();
+                    } // end: if
+                    $comment = 'Magento & DR order status are matched';
+                } else {
+                    $comment = 'Magento & DR order status are mis-matched';
+                } // end: if
+
+                $order->addStatusToHistory($order->getStatus(), __($comment));
+
+                $this->_logger->info('createFulfillmentRequestToDr Request : '.json_encode($request));
+                $this->_logger->info('createFulfillmentRequestToDr Response : '.json_encode($result));        
+            } else {
+                $this->_logger->error('Error createFulfillmentRequestToDr : Empty DR Order Id');
+            } // end: if
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error createFulfillmentRequestToDr : '.json_encode($le->getRawMessage()));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error createFulfillmentRequestToDr : '. $ex->getMessage());
+        } // end: try       
+        
+        return $result;
+    } // end: function createFulfillmentRequestToDr
+    
+    /**
+     * Function to check order has any items to Invoice or Ship
+     * 
+     * @var object $orderObj
+     * 
+     * @return boolean true/false
+     *
+     */
+    public function getPendingFulfillment($orderObj) {
+        try {
+            $canInvoice = $orderObj->canInvoice(); // returns true for pending items
+            $canShip    = $orderObj->canShip();  // returns true for pending items
+            
+            // Return true if both invoice and shipment are false, i.e. No items to fulfill
+            return (empty($canInvoice) && empty($canShip));
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error getInvoicesOrShipmentsList : '.json_encode($le->getRawMessage()));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error getInvoicesOrShipmentsList : '.$ex->getMessage());
+            return false;
+        } // end: try    
+    } // end: function getPendingFulfillment   
+    
+    /**
+     * Function to send EFN request to DR when @OrderItem is cancelled from Magento Admin
+     * 
+     * @param array $lineItems
+     * @param object $order
+     * 
+     * @return array $result
+     */
+    public function cancelFulfillmentRequestToDr($lineItems, $order) {
+        $items      = [];
+        $request    = [];
+        $status         = 'Cancelled';
+        $responseCode   = 'Cancelled'; 
+        
+        try {
+            if ($order->getDrOrderId()) {
+                $storeCode = $order->getStore()->getCode();
+                $drModel = $this->drFactory->create()->load($order->getDrOrderId(), 'requisition_id');
+
+                if(!$drModel->getId() || $drModel->getPostStatus() == 1) {
+                    return;
+                } // end: if
+                
+                foreach ($lineItems as $itemId => $item) {
+                    $items['item'][] = [
+                        "requisitionID"             => $item['requisitionID'],
+                        "noticeExternalReferenceID" => $item['noticeExternalReferenceID'],
+                        "lineItemID"                => $itemId,
+                        "fulfillmentCompanyID"      => $this->getCompanyId($storeCode),
+                        "electronicFulfillmentNoticeItems" => [
+                            "item" => [
+                                [
+                                    "status"                => $status,
+                                    "reasonCode"            => $responseCode,
+                                    "quantity"              => $item['quantity'],
+                                    "electronicContentType" => "EntitlementDetail",
+                                    "electronicContent"     => "magentoEventID"
+                                ]
+                            ]
+                        ]
+                    ];
+                } // end: foreach
+
+                $request['ElectronicFulfillmentNoticeArray'] = $items;
+
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->post($this->getDrPostUrl($storeCode), $this->jsonHelper->jsonEncode($request));
+                $result     = $this->curl->getBody();
+                $statusCode = $this->curl->getStatus();
+
+                // Status Update: Exsisting code used according to review changes
+                if ($statusCode == '200') {
+                    $comment = 'Order cancellation pushed to DR';
+                    $order->addStatusToHistory($order->getStatus(), __($comment));
+                } // end: if               
+
+                $this->_logger->info('cancelFulfillmentRequestToDr Request : '.json_encode($request));
+                $this->_logger->info('cancelFulfillmentRequestToDr Response : '.json_encode($result));        
+            } else {
+                $this->_logger->error('Error cancelFulfillmentRequestToDr : Empty DR Order Id');
+            } // end: if
+        } catch (\Magento\Framework\Exception\LocalizedException $le) {
+            $this->_logger->error('Error cancelFulfillmentRequestToDr : '.json_encode($le->getRawMessage()));
+        } catch (\Exception $ex) {
+            $this->_logger->error('Error cancelFulfillmentRequestToDr : '. $ex->getMessage());
+        } // end: try       
+        
+        return $result;
+    } // end: function cancelFulfillmentRequestToDr
 }

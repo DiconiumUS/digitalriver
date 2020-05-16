@@ -53,6 +53,8 @@ function loadScriptKlarna(url, callback){
 										//Something went wrong, display the error message to the customer
 										document.getElementById('message').innerHTML ="";
 										document.getElementById('message').innerHTML =result.error;								        
+										document.getElementById('klarna-message').innerHTML ="";
+										document.getElementById('klarna-message').innerHTML =result.error;								        
 								    } else {
 								        var source = result.source;
 								        //console.log(source);
@@ -69,6 +71,8 @@ function loadScriptKlarna(url, callback){
 							//Something went wrong, display the error message to the customer
 							document.getElementById('message').innerHTML = "";
 							document.getElementById('message').innerHTML = response.content;
+							document.getElementById('klarna-message').innerHTML = "";
+							document.getElementById('klarna-message').innerHTML = response.content;
 						}
 					},
 				});	
@@ -80,8 +84,9 @@ function loadScriptKlarna(url, callback){
 	function continueKlarnaOrder()
 	{
 		require(["jquery"], function ($) {		
+			var edit = '<?php echo __('Edit')?>';
 			var title = "<div class='title'>"+$(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
-			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-klarna' onclick='displayKlarnaForm()'>Edit</a>";
+			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-klarna' onclick='displayKlarnaForm()'>"+edit+"</a>";
 			$("#payment-data_klarna").html(title+editlink);						
 			$("#payment-data_klarna").css("display","block");
 			$("#payment-data_klarna").addClass('payment-active');

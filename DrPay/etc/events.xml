@@ -21,5 +21,11 @@
     </event>     
 	<event name="dr_place_order_success">
         <observer name="dr_place_order_success" instance="Digitalriver\DrPay\Observer\UpdateOrderDetails" />
-    </event>   
+    </event>
+    <event name="sales_order_invoice_register">
+        <observer name="salesOrderInvoiceRegister" instance="Digitalriver\DrPay\Observer\OrderFulfillmentUpdateToDr" disabled="false"/>
+    </event>
+    <event name="order_cancel_after">
+        <observer name="salesOrderCancel" instance="Digitalriver\DrPay\Observer\OrderCancelObserver" disabled="false"/>
+    </event>
 </config>

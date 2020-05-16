@@ -52,8 +52,10 @@ function loadScriptWire(url, callback){
 							//Show Error Message
 							console.log(response);
 							//Something went wrong, display the error message to the customer
-							document.getElementById('message').innerHTML = "";
-							document.getElementById('message').innerHTML = response.content;
+							//document.getElementById('message').innerHTML = "";
+							//document.getElementById('message').innerHTML = response.content;
+                                                        document.getElementById('wire-message').innerHTML = "";
+                                                        document.getElementById('wire-message').innerHTML = response.content;
 						}
 					},
 				});	
@@ -119,8 +121,8 @@ function loadScriptWire(url, callback){
 	                defaultTotal.estimateTotals();
 					if(result.error || result.source.state == "failed") {
 						//Something went wrong, display the error message to the customer
-						document.getElementById('wire-message').innerHTML ="";
-						document.getElementById('wire-message').innerHTML ="Failed to get Source! Please try again.";
+						document.getElementById('wire-message').innerHTML = "";
+						document.getElementById('wire-message').innerHTML = "<?php echo __("Failed to get Source! Please try again.")?>";
 					} else {
 						document.getElementById('wire-message').innerHTML ="";
 						//Success!  You can now send the token to your server for use in downstream API calls.
@@ -139,8 +141,10 @@ function loadScriptWire(url, callback){
 										continueWireTransfer();
 									}else{
 										//Show Error Message 
-										document.getElementById('message').innerHTML = ""; 
-										document.getElementById('message').innerHTML = response.content;
+										//document.getElementById('message').innerHTML = ""; 
+										//document.getElementById('message').innerHTML = response.content;
+										document.getElementById('wire-message').innerHTML = ""; 
+										document.getElementById('wire-message').innerHTML = response.content;
 										console.log(response);
 									}
 								},
@@ -154,15 +158,12 @@ function loadScriptWire(url, callback){
 	function editWireTransfer(){
 		require(["jquery"], function ($) {
 			$(".payment-methods .payment-group .step-title").css("display","block");
-			$(".payment-methods .payment-group .payment-method .payment-method-title").css("display","inline-block");
+			$(".payment-methods .payment-group .payment-method .payment-method-title").css("display","block");
 			$(".payment-methods .payment-group .payment-method .details").css("display","inline-block");
 			$(".payment-methods .payment-group .payment-method .payment-logos").css("display","inline-block");
 			$(".payment-methods .payment-group .payment-method .payment-icon").css("display","inline-block");
 			$("._active .payment-data").css("display","none");
 			$("._active .payment-data").css("display","none");
-			$(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block"); 
-			$(".payment-methods .payment-group .payment-method._active .actions-toolbar").css("display","none"); 
-			$(".payment-methods .payment-group .payment-method._active .checkout").css("display","none"); 
 			$(".wire_transfer-btn-first").css("display","block");
 			$(".wire_transfer-btn-second").css("display","none");
 			$(".wire_transfer-btn-second .checkout").css("display","none");			
@@ -173,7 +174,7 @@ function loadScriptWire(url, callback){
 			$('.step-content').css('background','none');
 			$('.payment-method-content').css('margin-bottom','10px');	
 			$(".payment-methods .payment-group .payment-method .checkout").css("display","none");
-			$(".payment-methods .payment-group .payment-method #drpay-payment-form .checkout").css("display","block");
+			$(".payment-methods .payment-group .payment-method #drpay-creditcard-form .checkout").css("display","block");
 			$('.payment_info_text').css("display","block");
 	        if($('#applepay-element').length){ 
 				document.getElementById('applepay-element').style.display = 'none';
@@ -190,12 +191,9 @@ function loadScriptWire(url, callback){
 		var edit = '<?php echo __('Edit')?>';
 		var checkoutTranslate = '<?php echo __('Checkout')?>';
 		var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
-		var editlink = "";//"<a class='payment-edit' id='payment-edit-wire_transfer' onclick='editWireTransfer()' href='javascript:void(0)'>"+edit+"</a>";
+		var editlink = "<a class='payment-edit' id='payment-edit-wire_transfer' onclick='editWireTransfer()' href='javascript:void(0)'>"+edit+"</a>";
 		jQuery("._active .payment-data").html(title+editlink);						
 		jQuery("._active .payment-data").css("display","block"); 
-		jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block"); 
-		jQuery(".payment-methods .payment-group .payment-method._active .actions-toolbar").css("display","block"); 
-		jQuery(".payment-methods .payment-group .payment-method._active .checkout").css("display","block"); 
 		jQuery(".primary.payment-button").css("display","none");
 		jQuery(".wire_transfer-btn-first").css("display","none");
 		jQuery(".wire_transfer-btn-second").css("display","block");
