@@ -53,6 +53,8 @@ function loadScriptKlarna(url, callback){
 										//Something went wrong, display the error message to the customer
 										document.getElementById('message').innerHTML ="";
 										document.getElementById('message').innerHTML =result.error;								        
+										document.getElementById('klarna-message').innerHTML ="";
+										document.getElementById('klarna-message').innerHTML =result.error;								        
 								    } else {
 								        var source = result.source;
 								        //console.log(source);

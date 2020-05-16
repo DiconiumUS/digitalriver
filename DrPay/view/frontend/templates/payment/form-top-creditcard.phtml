@@ -71,8 +71,11 @@ function loadScriptCard(url, callback){
 										hideDrForm(creditCardDetails);
 									}else{
 										//Show Error Message 
-										document.getElementById('message').innerHTML = ""; 
-										document.getElementById('message').innerHTML = response.content;
+										//document.getElementById('message').innerHTML = ""; 
+										//document.getElementById('message').innerHTML = response.content;
+                                                                                
+										document.getElementById('creditcard-message').innerHTML = ""; 
+										document.getElementById('creditcard-message').innerHTML = response.content;
 										console.log(response);
 									}
 								},
@@ -133,8 +136,11 @@ function loadScriptCard(url, callback){
 				drcreditcardjs.createSource(cardNumber,payload).then(function(result) {
 					if(result.error) {
 						//Something went wrong, display the error message to the customer
-						document.getElementById('message').innerHTML ="";
-						document.getElementById('message').innerHTML = "<?= __('Unable to process') ?>";
+						//document.getElementById('message').innerHTML ="";
+						//document.getElementById('message').innerHTML = "<?= __('Unable to process') ?>";
+                                                
+                                                document.getElementById('creditcard-message').innerHTML = ""; 
+                                                document.getElementById('creditcard-message').innerHTML = "<?= __('Unable to process') ?>";
 					} else {
 						//Success!  You can now send the token to your server for use in downstream API calls.
 						 var source = result.source;
@@ -152,8 +158,12 @@ function loadScriptCard(url, callback){
 										hideDrForm(creditCardDetails);
 									}else{
 										//Show Error Message 
-										document.getElementById('message').innerHTML = ""; 
-										document.getElementById('message').innerHTML = response.content;
+										//document.getElementById('message').innerHTML = ""; 
+										//document.getElementById('message').innerHTML = response.content;
+                                                                                
+										document.getElementById('creditcard-message').innerHTML = ""; 
+										document.getElementById('creditcard-message').innerHTML = response.content;
+
 										console.log(response);
 									}
 								},

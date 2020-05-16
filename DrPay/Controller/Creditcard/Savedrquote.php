@@ -35,7 +35,8 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $responseContent = [
-            'success'        => false
+            'success'        => false,
+            'content'        => __("Unable to process")
         ];
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);

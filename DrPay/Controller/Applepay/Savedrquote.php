@@ -28,7 +28,8 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $responseContent = [
-            'success'        => false
+            'success'        => false,
+            'content'        => __("Unable to process")
         ];
 
         $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
