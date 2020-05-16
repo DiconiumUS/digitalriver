@@ -854,29 +854,43 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $url = $this->getDrRefundUrl($storeCode)."orders/".$order->getDrOrderId()."/refunds";
             $token = $this->generateRefundToken($storeCode);
             if ($token) {
-                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => round($creditmemo->getGrandTotal(), 2)]];
-
-                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-                $this->curl->setOption(CURLOPT_TIMEOUT, 40);
-                $this->curl->addHeader("Content-Type", "application/json");
-                $this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
-                $this->curl->addHeader("Authorization", "Bearer " . $token);
-                $this->curl->post($url, json_encode($data));
-				$this->_logger->info("Refund Request :".json_encode($data));
-                $result = $this->curl->getBody();
-                $result = json_decode($result, true);
-                if (isset($result['errors']) && count($result['errors'])>0) {
-					$this->_logger->error("Refund Error :".json_encode($result));
-                    $flag = false;
-                } else {
-                    $flag = true;
-                }
-
+				$grandTotal = round($creditmemo->getGrandTotal(), 2);
+				$shippingAmount = round($creditmemo->getShippingInclTax(), 2);
+				if($shippingAmount > 0){
+					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_SHIPPING", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $shippingAmount]];
+					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+					if(!$response) return $response;
+					$grandTotal = $grandTotal - $shippingAmount;
+				}
+                $data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
+				$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+				if(!$response) return $response;
+				$flag = true;
                 return $flag;
             }
         }
         return $flag;
     }
+	
+	public function curlRefundRequest($drOrderId, $data, $token, $storeCode)
+	{
+		$flag = true;
+		$this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+		$this->curl->setOption(CURLOPT_TIMEOUT, 40);
+		$this->curl->addHeader("Content-Type", "application/json");
+		$this->curl->addHeader("x-siteid", $this->getCompanyId($storeCode));
+		$this->curl->addHeader("Authorization", "Bearer " . $token);
+		$url = $this->getDrRefundUrl($storeCode)."orders/".$drOrderId."/refunds";
+		$this->curl->post($url, json_encode($data));
+		$this->_logger->info("Refund Request :".json_encode($data));
+		$result = $this->curl->getBody();
+		$result = json_decode($result, true);
+		if (isset($result['errors']) && count($result['errors'])>0) {
+			$this->_logger->error("Refund Error :".json_encode($result));
+			$flag = false;
+		}
+		return $flag;
+	}
     /**
      *
      * @return type
