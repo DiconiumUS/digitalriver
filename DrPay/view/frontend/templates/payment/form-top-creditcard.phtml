@@ -31,16 +31,18 @@ function loadScriptCard(url, callback){
 		    //After append js set Your API Key and Start DigitalRiver.js
 		    var drcreditcardjs = new DigitalRiver(publicKey);
 			
-			var options = getDrCreditCardOptions();
 			//Create your Card Number element
+			var options = getDrCreditCardOptions('cardnumber');
 			var cardNumber = drcreditcardjs.createElement('cardnumber', options);
 			//Place the Card Number element within the container created above.
 			cardNumber.mount('card-number');      
 			//Create your Card Expiration element
+			var options = getDrCreditCardOptions('cardexpiration');
 			var cardExpiration = drcreditcardjs.createElement('cardexpiration', options);
 			//Place the Card Expiration element within the container created above.
 			cardExpiration.mount('card-expiration');
 			//Create your Card Security Code element
+			var options = getDrCreditCardOptions('cardcvv');
 			var cardSecurityCode = drcreditcardjs.createElement('cardcvv', options);
 			//Place the Card Security Code element within the container created above.
 			cardSecurityCode.mount('card-security-code');    
@@ -172,8 +174,17 @@ function loadScriptCard(url, callback){
 			}
 		});
 	}
-	function getDrCreditCardOptions(){
-	return {
+	function getDrCreditCardOptions(element){		
+		if(element == 'cardnumber'){
+			mytext = '<?php echo __("Credit Card Number")?>';
+		}
+		else if(element == 'cardexpiration'){
+			mytext = '<?php echo __("Month/Year")?>';
+		}
+		else{
+			mytext = '<?php echo __("Card Security Code")?>';
+		}
+		response = {
 			classes: {
 				base: "DRElement",
 				complete: "complete",
@@ -201,6 +212,8 @@ function loadScriptCard(url, callback){
 	             }
 	        }
 		};
+		response['placeholderText'] = mytext;
+		return response;
 	}	
 	function displayDrForm(){
 		jQuery(".payment-methods .payment-group .step-title").css("display","block");
@@ -291,24 +304,24 @@ function loadScriptCard(url, callback){
 				if (response.success) { 
 					if(response.content.paymentOptions.paymentOption){ 
 						payOptions = response.content.paymentOptions.paymentOption; 
-                                                var cardslist = []; 
+                        var cardslist = []; 
 						for (var key in payOptions) { 
 							if (payOptions.hasOwnProperty(key)) { 
 								var tmpHtml = ""; 
 								var val = payOptions[key]; 
 								var valType = val.type; 
-                                                                cardslist[val.id] = val.owner.firstName+' '+val.owner.lastName+', '+val.address.line1+', '+val.address.city+', '+val.address.region+' '+val.address.postalCode+', '+val.address.countryName;
+                                cardslist[val.id] = val.owner.firstName+' '+val.owner.lastName+', '+val.address.line1+', '+val.address.city+', '+val.address.region+' '+val.address.postalCode+', '+val.address.countryName;
 								tmpHtml = '<div id="drpay_scardslist"><input type="radio" name="selected_card" value="'+val.id+'" onclick="hideForm()" data-bind="afterRender: selectCards"/>'+val.nickName+' ('+val[valType].brand+', '+val[valType].lastFourDigits+', '+val.address.line1+','+val.address.city+','+val.address.state+','+val.address.country+','+val.address.postalCode+') </div>'; 
 								jQuery(".saved_cards_inner").append(tmpHtml); 
 							} 
 						} 
-                                                window.checkoutConfig.payment.drpay_cards = cardslist;
+                        window.checkoutConfig.payment.drpay_cards = cardslist;
 						if(jQuery('input[name="selected_card"]').length > 0){ 
 							hideForm(); 
 							var newcardlaebl = '<?php echo __('New Card')?>';
 							tmpHtml = '<div><input type="radio" name="selected_card" value="" onclick="showForm()"/>'+ newcardlaebl +'</div>'; 
 							jQuery(".saved_cards_inner").append(tmpHtml); 
-                                                        // Default selection won't trigger, so noting is selected
+                            // Default selection won't trigger, so noting is selected
 							//jQuery('input[name="selected_card"]:first').prop('checked', true); 
 							jQuery('.saved_cards_outer').show(); 
 						} 
@@ -321,19 +334,6 @@ function hideForm(){
 	jQuery("#drpay_creditcard-content .payment-method-instruction").hide();
 	jQuery("#drpay_creditcard-content #drpay-creditcard-form .payment-form-inner").hide();
 	jQuery("#drpay_creditcard-content .checkout-billing-address").hide();
-        
-        jQuery('input[name="selected_card"]').on('change', function() {
-            var selectedAddress     = (window.checkoutConfig.payment.drpay_cards[this.value]).toLowerCase();
-            jQuery('#drpay_creditcard-content .checkout-billing-address .field-select-billing .select > option').each(function(index, element) {
-                currentAddress = (this.text).toLowerCase()
-                if(selectedAddress == currentAddress) {
-                    jQuery('#drpay_creditcard-content .checkout-billing-address #billing-address-same-as-shipping-drpay_creditcard').prop('checked', false);
-                    jQuery(element).prop('selected', true);
-                    jQuery('#drpay_creditcard-content .checkout-billing-address .field-select-billing .select').trigger('change');
-                    jQuery('#drpay_creditcard-content .checkout-billing-address .actions-toolbar .action-update').trigger('click');
-                }
-            });
-        });
 }
 function showForm(){
 	jQuery("#drpay_creditcard-content .payment-method-instruction").show();
