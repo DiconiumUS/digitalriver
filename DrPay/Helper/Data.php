@@ -551,21 +551,93 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return array|null
      */
-    public function getSavedCards()
-    {
-        $result = "";
-        if ($this->getDrBaseUrl() && $this->session->getDrAccessToken()) {
-            $accessToken = $this->session->getDrAccessToken();
-            $url = $this->getDrBaseUrl()."v1/shoppers/me/payment-options?expand=all&format=json";
-            
-            $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->addHeader("Content-Type", "application/json");
-            $this->curl->addHeader("Authorization", "Bearer " . $accessToken);
-            $this->curl->get($url);
-            $result = $this->curl->getBody();
-            $result = json_decode($result, true);
-        }
+    public function getSavedCards() {
+        $result = [];
+        try {
+            $customer = $this->getCustomer();
+            if(!empty($customer) && isset($customer['shopper']['id']) && $this->getDrBaseUrl() && $this->getDrAuthUsername() && $this->getDrAuthPassword()) {
+                $customerId = $customer['shopper']['id'];
+                $url = $this->getDrBaseUrl()."customers/{$customerId}/payment-options?expand=all";
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->setCredentials($this->getDrAuthUsername(), $this->getDrAuthPassword());
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->get($url);
+
+                $curlData = [
+                    'url'       => $url,
+                    'auth_user' => $this->getDrAuthUsername(),
+                    'auth_pass' => $this->getDrAuthPassword(),
+                    'response'  => $this->curl->getBody()
+                ];
+                $this->_logger->info('getSavedCards Response: '.json_encode($curlData));
+
+                $paymentOptions = $this->curl->getBody();
+                if(!empty($paymentOptions)){
+                    $paymentOptions = json_decode($paymentOptions, true);
+                    if(isset($paymentOptions['paymentOptions'])){
+                        $paymentOptions = $this->getTransposedList($paymentOptions['paymentOptions'], 'id');
+                        $customerPaymentOptions = $this->getTransposedList($customer['shopper']['paymentOptions']['paymentOption'], 'id');
+                        $paymentOptions = $this->getTransposedList($paymentOptions, 'id');
+                        $result['paymentOptions']['paymentOption'] = $this->arrayDeepMergeIntegerKey($paymentOptions, $customerPaymentOptions);
+                    } else {
+                        $this->_logger->info('getSavedCards Error: Empty Payment Options Details.');
+                    } // end: if
+                } else {
+                    $this->_logger->info('getSavedCards Error: Empty Payment Options.');
+                } // end: if		
+            } else {
+                $this->_logger->info('getSavedCards Error: Invalid Customer details.');
+            } // end: if   
+        } catch (\Exception $ex) {
+            $this->_logger->info('getSavedCards Error: '.json_encode($ex->getMessage()));
+            $this->messageManager->addError(__('Sorry, Saved cards could not be loaded.'));
+        } // end: try
+
         return $result;
+    }
+
+    public function getCustomer() {
+        $result = '';
+
+        try{
+            if($this->getDrBaseUrl() && $this->session->getDrAccessToken()) {
+                $accessToken = $this->session->getDrAccessToken();
+                $url = $this->getDrBaseUrl()."v1/shoppers/me.json?format=json&expand=all";
+                $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->curl->addHeader("Content-Type", "application/json");
+                $this->curl->addHeader("Authorization", "Bearer " . $accessToken);
+                $this->curl->get($url);
+                $result = $this->curl->getBody();			
+                $result = json_decode($result, true);			
+            } // end: if
+        } catch (\Exception $ex) {
+            $this->_logger->info('getCustomer Error: '.json_encode($ex->getMessage()));
+        } // end: try        
+
+        return $result;
+    }
+
+    private function getTransposedList($data, $search_key) {
+        $opts = array();
+        if(is_array($data) && !empty($data)){
+            foreach($data as $key => $row){
+                if(is_array($row) && isset($row[$search_key]) && !is_null($row[$search_key]))
+                    $opts[$row[$search_key]] = $row;				
+                elseif(is_object($row) && isset($row->$search_key) && !is_null($row->$search_key))
+                    $opts[$row->$search_key] = $row;
+            }
+        }
+        return $opts;
+    }
+
+    private function arrayDeepMergeIntegerKey(){
+        $output = array();
+        foreach(func_get_args() as $array) {
+            foreach($array as $key => $value) {
+                $output[$key] = isset($output[$key]) ? array_merge($output[$key], $value) : $value;
+            }
+        }
+        return $output;
     }
     /**
      * @param  mixed $data
