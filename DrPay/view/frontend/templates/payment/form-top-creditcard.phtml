@@ -69,6 +69,7 @@ function loadScriptCard(url, callback){
 										var cardType = response.content.cart.paymentMethod.type;
 										var creditCardDetails = response.content.cart.paymentMethod[cardType];
 										hideDrForm(creditCardDetails);
+										displayUpdatedAddress(optionId);
 									}else{
 										//Show Error Message 
 										//document.getElementById('message').innerHTML = ""; 
@@ -136,11 +137,8 @@ function loadScriptCard(url, callback){
 				drcreditcardjs.createSource(cardNumber,payload).then(function(result) {
 					if(result.error) {
 						//Something went wrong, display the error message to the customer
-						//document.getElementById('message').innerHTML ="";
-						//document.getElementById('message').innerHTML = "<?= __('Unable to process') ?>";
-                                                
-                                                document.getElementById('creditcard-message').innerHTML = ""; 
-                                                document.getElementById('creditcard-message').innerHTML = "<?= __('Unable to process') ?>";
+                        document.getElementById('creditcard-message').innerHTML = ""; 
+						document.getElementById('creditcard-message').innerHTML = "<?= __('Unable to process') ?>";
 					} else {
 						//Success!  You can now send the token to your server for use in downstream API calls.
 						 var source = result.source;
@@ -247,7 +245,21 @@ function loadScriptCard(url, callback){
 			jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","block");
 		}
 	} 
-	function hideDrForm(creditCardDetails) { 
+	function hideDrForm(creditCardDetails) {
+		require([
+			'Magento_Checkout/js/model/quote', 
+			'Magento_Checkout/js/model/cart/totals-processor/default', 
+			'Magento_Checkout/js/model/cart/cache'
+		],
+		function (quote,defaultTotal, cartCache){
+			if(quote.getQuoteId() && quote.isVirtual()){
+				var totals = quote.totals();
+				if(totals){					
+	                cartCache.set('totals',null);
+	                defaultTotal.estimateTotals();
+				}
+			}
+		});
 		if(creditCardDetails) { 
 			var edit = '<?php echo __('Edit')?>';
 			var info = '<?php echo __('ending in')?>';
@@ -310,7 +322,7 @@ function loadScriptCard(url, callback){
 								var tmpHtml = ""; 
 								var val = payOptions[key]; 
 								var valType = val.type; 
-                                cardslist[val.id] = val.owner.firstName+' '+val.owner.lastName+', '+val.address.line1+', '+val.address.city+', '+val.address.region+' '+val.address.postalCode+', '+val.address.countryName;
+								cardslist[val.id] = val.owner.firstName+' '+val.owner.lastName+' <br>'+val.address.line1+' <br>'+val.address.city+', '+val.address.region+' '+val.address.postalCode+' <br>'+val.address.countryName+' <br>';				
 								tmpHtml = '<div id="drpay_scardslist"><input type="radio" name="selected_card" value="'+val.id+'" onclick="hideForm()" data-bind="afterRender: selectCards"/>'+val.nickName+' ('+val[valType].brand+', '+val[valType].lastFourDigits+', '+val.address.line1+','+val.address.city+','+val.address.state+','+val.address.country+','+val.address.postalCode+') </div>'; 
 								jQuery(".saved_cards_inner").append(tmpHtml); 
 							} 
@@ -339,5 +351,17 @@ function showForm(){
 	jQuery("#drpay_creditcard-content .payment-method-instruction").show();
 	jQuery("#drpay_creditcard-content #drpay-creditcard-form .payment-form-inner").show();
 	jQuery("#drpay_creditcard-content .checkout-billing-address").show();
+	jQuery("#drpay_creditcard-content #creditcard-address").hide();
+}
+function displayUpdatedAddress(optionId){
+	jQuery("#drpay_creditcard-content .checkout-billing-address").hide();
+	jQuery("#drpay_creditcard-content #creditcard-address").show();
+	require([
+			'Magento_Checkout/js/model/quote'
+		],
+		function (quote){
+			jQuery("#creditcard-address").html(window.checkoutConfig.payment.drpay_cards[optionId]+quote.billingAddress().telephone);
+		}
+	);
 }
 </script>
