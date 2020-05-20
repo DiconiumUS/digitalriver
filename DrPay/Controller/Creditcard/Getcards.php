@@ -19,14 +19,20 @@ class Getcards extends \Magento\Framework\App\Action\Action
      * @param \Magento\Framework\App\Action\Context  $context
      * @param \Magento\Checkout\Model\Session        $checkoutSession
      * @param \Digitalriver\DigitalRiver\Helper\Data $helper
+     * @param \Magento\Directory\Model\Region        $regionModel,
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Digitalriver\DrPay\Helper\Data $helper
+        \Digitalriver\DrPay\Helper\Data $helper,
+        \Magento\Directory\Model\Region $regionModel,
+        \Magento\Directory\Model\CountryFactory $countryFactory
     ) {
         $this->helper =  $helper;
         $this->_checkoutSession = $checkoutSession;
+        $this->regionModel      = $regionModel;
+        $this->countryFactory  = $countryFactory;
         parent::__construct($context);
     }
     /**
@@ -39,6 +45,17 @@ class Getcards extends \Magento\Framework\App\Action\Action
         ];
         $cardResult = $this->helper->getSavedCards();
         if ($cardResult) {
+            foreach($cardResult['paymentOptions']['paymentOption'] as $id => $card) {
+                $region     = $this->regionModel->loadByCode($card['address']['state'], $card['address']['country'])->getData();
+                $cardResult['paymentOptions']['paymentOption'][$id]['address']['region']    = !empty($region['name']) ? $region['name'] : null;
+                $cardResult['paymentOptions']['paymentOption'][$id]['address']['regionId'] = !empty($region['region_id']) ? $region['region_id'] : null;
+                
+                $country    = $this->countryFactory->create()->loadByCode($card['address']['country']);
+                if (!empty($country)) {
+                    $cardResult['paymentOptions']['paymentOption'][$id]['address']['countryName'] = $country->getName();
+                }
+            } // end: if
+            
             $responseContent = [
                 'success'        => true,
                 'content'        => $cardResult
