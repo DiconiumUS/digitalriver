@@ -238,6 +238,7 @@ function loadScriptCard(url, callback){
 		jQuery(".payment-methods .payment-group .payment-method .checkout").css("display","none");
 		jQuery(".payment-methods .payment-group .payment-method #drpay-creditcard-form .checkout").css("display","block");
 		jQuery("#drpay_creditcard-content .checkout-billing-address").hide();
+		jQuery("#drpay_creditcard-content #creditcard-address").hide();
 		if(window.checkoutConfig.quoteData.is_virtual){
 			jQuery(".billing-address-details .action-edit-address").css("display","block");
 		}else{
