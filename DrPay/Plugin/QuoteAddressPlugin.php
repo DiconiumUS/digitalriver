@@ -47,10 +47,10 @@ class QuoteAddressPlugin
         $enableDrPayValue = $this->getDrPayEnable();
         if ($enableDrPayValue) {
 			$quote = $subject->getQuote();
-            if (!$quote->isVirtual()) {
+            //if (!$quote->isVirtual()) {
                 //Create the cart in DR
                 $this->drHelper->createFullCartInDr($quote);
-            }
+            //}
         }
         return $result;
     }
