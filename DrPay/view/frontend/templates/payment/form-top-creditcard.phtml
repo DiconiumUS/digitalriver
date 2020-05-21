@@ -324,7 +324,7 @@ function loadScriptCard(url, callback){
 								var val = payOptions[key]; 
 								var valType = val.type; 
 								cardslist[val.id] = val.owner.firstName+' '+val.owner.lastName+' <br>'+val.address.line1+' <br>'+val.address.city+', '+val.address.region+' '+val.address.postalCode+' <br>'+val.address.countryName+' <br>';				
-								tmpHtml = '<div id="drpay_scardslist"><input type="radio" name="selected_card" value="'+val.id+'" onclick="hideForm()" data-bind="afterRender: selectCards"/>'+val.nickName+' ('+val[valType].brand+', '+val[valType].lastFourDigits+', '+val.address.line1+','+val.address.city+','+val.address.state+','+val.address.country+','+val.address.postalCode+') </div>'; 
+								tmpHtml = '<div id="drpay_scardslist"><input type="radio" name="selected_card" value="'+val.id+'" onclick="hideForm()" data-bind="afterRender: selectCards"/>'+val.nickName+' ('+val[valType].brand+', '+val[valType].lastFourDigits+', '+val.address.line1+', '+val.address.city+', '+val.address.state+', '+val.address.country+', '+val.address.postalCode+') </div>'; 
 								jQuery(".saved_cards_inner").append(tmpHtml); 
 							} 
 						} 
