@@ -30,7 +30,8 @@ class CreateDrOrder implements ObserverInterface
 		\Digitalriver\DrPay\Model\DrConnector $drconnector,
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+            \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
     ) {
         $this->helper =  $helper;
         $this->session = $session;
@@ -38,6 +39,7 @@ class CreateDrOrder implements ObserverInterface
 		$this->jsonHelper = $jsonHelper;
         $this->_storeManager = $storeManager;
 		$this->_eventManager = $eventManager;
+                $this->addressRepository = $addressRepository;
     }
 
     /**
@@ -66,6 +68,10 @@ class CreateDrOrder implements ObserverInterface
 				$cartresult = $this->helper->getDrCart();
                 $result = $this->helper->createOrderInDr($accessToken);
                 if ($result && isset($result["errors"])) {
+                    $addressId = $quote->getShippingAddress() ? $quote->getShippingAddress()->getCustomerAddressId(): null;
+                    if ($addressId && $quote->getShippingAddress()->getSaveInAddressBook()) {
+                        $this->addressRepository->deleteById($addressId);
+                    }
                     throw new CouldNotSaveException(__('Unable to Place Order'));
                 } else {
 					$this->_eventManager->dispatch('dr_place_order_success', ['order' => $order, 'quote' => $quote, 'result' => $result, 'cart_result' => $cartresult]);
