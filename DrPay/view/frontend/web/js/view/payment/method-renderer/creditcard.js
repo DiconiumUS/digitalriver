@@ -9,12 +9,15 @@ define(
     [
     'jquery',
     'underscore',
-    'Magento_Checkout/js/view/payment/default'
-
+    'Magento_Checkout/js/view/payment/default',
+	'Magento_Checkout/js/model/quote',
+    'Magento_Checkout/js/action/place-order'
     ], function (
         $,
         _,
-        Component
+        Component,
+		quote,
+		placeOrderAction
     ) {
         'use strict';
 
@@ -81,7 +84,19 @@ define(
                 },
                 radioInit: function () {
                     $(".payment-methods input:radio:first").prop("checked", true).trigger("click");
-                }        
+                },			
+
+				/**
+				 * @return {*}
+				 */
+				getPlaceOrderDeferredObject: function () {
+					if(jQuery("#creditcard-address").css("display") != "none"){
+						quote.billingAddress(null);
+					}
+					return $.when(
+						placeOrderAction(this.getData(), this.messageContainer)
+					);
+				}  
             }
         );
     }
