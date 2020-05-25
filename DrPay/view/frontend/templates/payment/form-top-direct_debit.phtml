@@ -44,6 +44,7 @@ function loadScriptDebit(url, callback){
                     url: BASE_URL + 'drpay/directdebit/savedrquote',
                     success: function (response) {
                         if (response.success) {
+							jQuery('body').trigger('processStart');
                             if(response.content.cart){
                                 //once cart created get the payment source id
                                 getDirectDebitSourceId(drDirectDebitjs);
@@ -117,6 +118,7 @@ function loadScriptDebit(url, callback){
                     console.log(payload);
                     console.log(result);
                     if(result.error || result.source.state == "failed") {
+						jQuery('body').trigger('processStop');
                         //Something went wrong, display the error message to the customer
                         document.getElementById('directdebit-message').innerHTML ="";
                         document.getElementById('directdebit-message').innerHTML = '<?php echo __("Error! Please check your address and try again.")?>';
@@ -128,37 +130,7 @@ function loadScriptDebit(url, callback){
                          var edit = '<?php echo __('Edit')?>';
                          window.checkoutConfig.payment.drpay_direct_debit.redirect_url = redirectUrl;
                          if(redirectUrl){
-                            var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
-                            var editlink = "<a class='payment-edit' id='payment-edit-direct_debit' onclick='editDirectDebit()' href='javascript:void(0)'>"+edit+"</a>";
-                            console.log(title+editlink);
-                            jQuery("._active .payment-data").html(title+editlink);                        
-                            jQuery("._active .payment-data").css("display","block"); 
-                            jQuery("._active .payment-data").addClass('payment-active');
-                            jQuery(".payment-methods .payment-group .payment-method .payment-method-content .checkout").css("display","block");
-                            jQuery(".payment-methods .payment-group .payment-method._active .checkout").css("display","block"); 
-                            jQuery(".primary.payment-button").css("display","none");
-                            jQuery(".direct_debit-btn-first").css("display","none");
-                            jQuery(".direct_debit-btn-second").css("display","block");
-                            jQuery(".direct_debit-btn-second .checkout").css("display","block");
-                            jQuery(".payment-methods .payment-group .step-title").css("display","none");
-                            jQuery(".payment-method._active .payment-method-content .payment-method-note").css("display","none");
-                            jQuery(".payment-methods .payment-group .payment-method .payment-method-title").css("display","none");
-                            jQuery(".payment-methods .payment-group .payment-method .details").css("display","none");
-                            jQuery(".payment-methods .payment-group .payment-method .payment-logos").css("display","none");
-                            jQuery(".payment-methods .payment-group .payment-method .payment-icon").css("display","none");
-                            jQuery(".payment-methods .payment-group .payment-method .payment-method-instruction").css("display","none");
-                            jQuery("._active #payframe").css("display","none");
-                            jQuery('.checkout-tabs .nav-pills li').removeClass('active');
-                            jQuery('.checkout-tabs .nav-pills li:nth-child(2)').addClass('active');
-                            jQuery(".checkout-index-index h1.page-title .base").html('Checkout');
-                            jQuery('.step-content').css('background','#e6e6e6');
-                            jQuery('.payment-method-content').css('margin-bottom','50px');
-							if(window.checkoutConfig.quoteData.is_virtual){
-								jQuery(".billing-address-details .action-edit-address").css("display","none");
-							}else{
-								jQuery(".billing-address-details .action-edit-address").css("display","none");
-								jQuery(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
-							}
+							$('.primary.direct_debit-btn-second .action.primary.checkout').trigger('click');
                          }
                     }
                 });
