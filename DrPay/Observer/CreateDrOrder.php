@@ -56,7 +56,11 @@ class CreateDrOrder implements ObserverInterface
         if ($quote->getPayment()->getMethod() == \Digitalriver\DrPay\Model\CreditCard::PAYMENT_METHOD_CREDITCARD_CODE || $quote->getPayment()->getMethod() == \Digitalriver\DrPay\Model\ApplePay::PAYMENT_METHOD_APPLE_PAY_CODE) {
             $result = $this->helper->createFullCartInDr($quote, 1);
             $accessToken = $this->session->getDrAccessToken();
+            $addressId = $quote->getShippingAddress() ? $quote->getShippingAddress()->getCustomerAddressId(): null;
             if ($this->session->getDrQuoteError()) {
+                if ($addressId && $quote->getShippingAddress()->getSaveInAddressBook()) {
+                    $this->addressRepository->deleteById($addressId);
+                }
                 throw new CouldNotSaveException(__('Unable to Place Order'));
             } else {
                 $totals = $result["cart"]["pricing"]["orderTotal"];
@@ -68,7 +72,6 @@ class CreateDrOrder implements ObserverInterface
 				$cartresult = $this->helper->getDrCart();
                 $result = $this->helper->createOrderInDr($accessToken);
                 if ($result && isset($result["errors"])) {
-                    $addressId = $quote->getShippingAddress() ? $quote->getShippingAddress()->getCustomerAddressId(): null;
                     if ($addressId && $quote->getShippingAddress()->getSaveInAddressBook()) {
                         $this->addressRepository->deleteById($addressId);
                     }
