@@ -57,9 +57,13 @@ class CreateDrOrder implements ObserverInterface
             $result = $this->helper->createFullCartInDr($quote, 1);
             $accessToken = $this->session->getDrAccessToken();
             $addressId = $quote->getShippingAddress() ? $quote->getShippingAddress()->getCustomerAddressId(): null;
+            $billingAddressId = $quote->getBillingAddress() ? $quote->getBillingAddress()->getCustomerAddressId(): null;
             if ($this->session->getDrQuoteError()) {
                 if ($addressId && $quote->getShippingAddress()->getSaveInAddressBook()) {
                     $this->addressRepository->deleteById($addressId);
+                }
+                if ($billingAddressId && $quote->getBillingAddress()->getSaveInAddressBook()) {
+                    $this->addressRepository->deleteById($billingAddressId);
                 }
                 throw new CouldNotSaveException(__('Unable to Place Order'));
             } else {
@@ -74,6 +78,9 @@ class CreateDrOrder implements ObserverInterface
                 if ($result && isset($result["errors"])) {
                     if ($addressId && $quote->getShippingAddress()->getSaveInAddressBook()) {
                         $this->addressRepository->deleteById($addressId);
+                    }
+                    if ($billingAddressId && $quote->getBillingAddress()->getSaveInAddressBook()) {
+                        $this->addressRepository->deleteById($billingAddressId);
                     }
                     throw new CouldNotSaveException(__('Unable to Place Order'));
                 } else {
