@@ -221,10 +221,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function createFullCartInDr($quote, $return = null)
     {
-		$address = $quote->getBillingAddress();
-		if (!$address || !$address->getCity()) {
-			return;
-		}
+        // Commented temporarily as it affects on updating subtotal in minicart
+//		$address = $quote->getBillingAddress();
+//		if (!$address || !$address->getCity()) {
+//			return;
+//		}
+        // Comment ends
         if ($this->session->getDrAccessToken()) {
             $accessToken = $this->session->getDrAccessToken();			
 			if ($accessToken) {
