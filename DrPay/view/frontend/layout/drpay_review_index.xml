@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="checkout" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="navigation.sections" remove="true"/>
+        <referenceContainer name="content">
+            <block ifconfig="dr_settings/config/active" class="\Digitalriver\DrPay\Block\Onepage\Review" name="drpay_onepage_success_review" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::review/form-success-review.phtml">
+            </block>
+        </referenceContainer>
+    </body>
+</page>
