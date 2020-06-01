@@ -58,8 +58,10 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
+            $this->_checkoutSession->setSelectedPaymentMethod('klarna');
             $payload = [];
-            $returnurl = $this->_url->getUrl('drpay/klarna/success');
+            //$returnurl = $this->_url->getUrl('drpay/klarna/success');
+            $returnurl = $this->_url->getUrl('drpay/review/index');
             $cancelurl = $this->_url->getUrl('drpay/klarna/cancel');
             $itemsArr = [];
             $shipping = [];

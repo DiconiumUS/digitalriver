@@ -56,8 +56,11 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         $quote = $this->_checkoutSession->getQuote();
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
+            //Set selected payment method
+            $this->_checkoutSession->setSelectedPaymentMethod('paypal');      
             $payload = [];
-            $returnurl = $this->_url->getUrl('drpay/paypal/success');
+            //$returnurl = $this->_url->getUrl('drpay/paypal/success');
+            $returnurl = $this->_url->getUrl('drpay/review/index');
             $cancelurl = $this->_url->getUrl('drpay/paypal/cancel');
             $itemsArr = [];
             $shipping = [];

@@ -41,6 +41,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
             // $paymentResult = $this->helper->applyQuotePayment($source_id);
         if ($cartResult) {
+            $this->_checkoutSession->setSelectedPaymentMethod('direct debit');
             $responseContent = [
                 'success'        => true,
                 'content'        => $cartResult
