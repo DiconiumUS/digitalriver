@@ -109,8 +109,8 @@ function loadScriptDebit(url, callback){
                                 country: billingAddress.countryId
                             }
                         }, 
-                        "directDebit": { 
-                            "returnUrl": window.BASE_URL+"drpay/directdebit/success" 
+                        "directDebit": {
+                            "returnUrl": window.BASE_URL+"drpay/review/index" 
                         }
                     }
                 }
@@ -130,7 +130,7 @@ function loadScriptDebit(url, callback){
                          var edit = '<?php echo __('Edit')?>';
                          window.checkoutConfig.payment.drpay_direct_debit.redirect_url = redirectUrl;
                          if(redirectUrl){
-							$('.primary.direct_debit-btn-second .action.primary.checkout').trigger('click');
+                            jQuery('.primary.direct_debit-btn-second .action.primary.checkout').trigger('click');
                          }
                     }
                 });
