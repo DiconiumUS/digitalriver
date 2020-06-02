@@ -221,10 +221,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function createFullCartInDr($quote, $return = null)
     {
-//		$address = $quote->getBillingAddress();
-//		if (!$address || !$address->getCity()) {
-//			return;
-//		}
+            $address = $quote->getBillingAddress();
+            if (!$address || !$address->getCity()) {
+                    return;
+            }
         if ($this->session->getDrAccessToken()) {
             $accessToken = $this->session->getDrAccessToken();			
 			if ($accessToken) {
