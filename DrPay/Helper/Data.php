@@ -221,10 +221,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function createFullCartInDr($quote, $return = null)
     {
-            $address = $quote->getBillingAddress();
-            if (!$address || !$address->getCity()) {
-                    return;
-            }
+		$address = $quote->getBillingAddress();
+		if (!$address || !$address->getCity()) {
+				return;
+		}
         if ($this->session->getDrAccessToken()) {
             $accessToken = $this->session->getDrAccessToken();			
 			if ($accessToken) {
@@ -279,16 +279,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						}
 					}
                     $price = $item->getCalculationPrice();
-
-                    $quoteItem = $quote->getItemById($item->getId());
-                    if($quoteItem->getProductType() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE) {
-                        $price = $quoteItem->getCalculationPrice();
-                        $lineItem["quantity"] = $quoteItem->getQty();
-                        $item = $quoteItem;
-                    }
-                    if($quoteItem->getProductType() == \Magento\Bundle\Model\Product\Type::TYPE_CODE) {
-                        $lineItem["quantity"] = $item->getQty() * $quoteItem->getQty();
-                    }
 					if($tax_inclusive){
 						$price = $item->getPriceInclTax();
 					}

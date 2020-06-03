@@ -19,11 +19,11 @@ use Magento\Framework\Exception\CouldNotSaveException;
  */
 class CreateDrOrder implements ObserverInterface
 {
-        /**
-         * @param \Digitalriver\DrPay\Helper\Data            $helper
-         * @param \Magento\Checkout\Model\Session            $session
-         * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-         */
+	/**
+	 * @param \Digitalriver\DrPay\Helper\Data            $helper
+	 * @param \Magento\Checkout\Model\Session            $session
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+	 */
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $helper,
         \Magento\Checkout\Model\Session $session,
@@ -31,7 +31,7 @@ class CreateDrOrder implements ObserverInterface
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\Event\ManagerInterface $eventManager,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-            \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
+        \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
     ) {
         $this->helper =  $helper;
         $this->session = $session;
