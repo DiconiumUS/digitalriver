@@ -388,6 +388,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
 	                    $shippingAmount = $shippingInclTax;
 					}
+					$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
                     $shippingTitle = $quote->getShippingAddress()->getShippingDescription();
                 }
