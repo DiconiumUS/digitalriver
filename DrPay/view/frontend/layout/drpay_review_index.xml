@@ -3,7 +3,7 @@
     <body>
         <referenceBlock name="navigation.sections" remove="true"/>
         <referenceContainer name="content">
-            <block ifconfig="dr_settings/config/active" class="\Digitalriver\DrPay\Block\Onepage\Review" name="drpay_onepage_success_review" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::review/form-success-review.phtml">
+            <block ifconfig="dr_settings/config/active" class="Digitalriver\DrPay\Block\Onepage\Review" name="drpay_onepage_success_review" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::review/form-success-review.phtml">
             </block>
         </referenceContainer>
     </body>
