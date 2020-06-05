@@ -155,9 +155,15 @@ class UpdateOrderDetails implements ObserverInterface
 				$orderitem->setTaxPercent($listprice["taxRate"] * 100);
 			}
 			if($tax_inclusive){				
-				$orderitem->setPrice($listprice["salePrice"]['value']);
+				$discountAmount = $orderitem->getDiscountAmount();
+				($discountAmount) OR $discountAmount = 0;
+				$orderitem->setDiscountTaxCompensationAmount(0);
+				$orderitem->setBaseDiscountTaxCompensationAmount(0);
+				$salePrice = $listprice["salePrice"]['value'] + ($discountAmount/$qty);
+				$salePriceWithQuantity = $listprice["salePriceWithQuantity"]['value'] - $total_tax_amount + $discountAmount;
+				$orderitem->setPrice($salePrice);
 				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
-				$orderitem->setRowTotal($this->priceCurrency->round($listprice["salePriceWithQuantity"]['value'] - $total_tax_amount));
+				$orderitem->setRowTotal($this->priceCurrency->round($salePriceWithQuantity));
 				$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
 			}else{
 				$orderitem->setPriceInclTax($orderitem->getPrice() + $tax_amount);
