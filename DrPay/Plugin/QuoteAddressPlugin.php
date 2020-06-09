@@ -22,14 +22,10 @@ class QuoteAddressPlugin
     
     public function __construct(
         \Digitalriver\DrPay\Helper\Data $drHelper,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Customer\Model\CustomerFactory $customerFactory,
-        \Magento\Customer\Model\AddressFactory $addressFactory
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
          $this->drHelper= $drHelper;
          $this->scopeConfig = $scopeConfig;
-         $this->_customerFactory = $customerFactory;
-         $this->_addressFactory = $addressFactory;
     }
     /**
      * Get DrPay Module Status
