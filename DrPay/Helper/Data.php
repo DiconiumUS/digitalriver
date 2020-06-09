@@ -319,9 +319,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $billingAddress["countrySubdivision"] = 'na';
                     $regionName = $address->getRegion();
                     if ($regionName) {
-                        $countryId = $address->getCountryId();
-                        $region = $this->regionModel->loadByName($regionName, $countryId);
-                        $billingAddress["countrySubdivision"] = $region->getCode();
+						if(is_array($regionName)){
+							$billingAddress["countrySubdivision"] = 'na';
+						}else{
+							$countryId = $address->getCountryId();
+							$region = $this->regionModel->loadByName($regionName, $countryId);
+							$billingAddress["countrySubdivision"] = $region->getCode() ? $region->getCode() : 'na';
+						}
                     }
                     $billingAddress["postalCode"] = $address->getPostcode();
                     $billingAddress["country"] = $address->getCountryId();
@@ -361,7 +365,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							}else{
 								$countryId = $address->getCountryId();
 								$region = $this->regionModel->loadByName($regionName, $countryId);
-								$shippingAddress["countrySubdivision"] = $region->getCode();
+								$shippingAddress["countrySubdivision"] = $region->getCode() ? $region->getCode() : 'na';
 							}
                         }
                         $shippingAddress["postalCode"] = $address->getPostcode();
