@@ -20,13 +20,13 @@
         <observer name="checkout_onepage_controller_success_action" instance="Digitalriver\DrPay\Observer\UpdateOrderStatus" />
     </event>
     <event name="checkout_cart_product_add_after">
-        <observer name="CreateDrCart" instance="Digitalriver\DrPay\Observer\CreateDrCart" disabled="false"/>
+        <observer name="UnsetDrToken" instance="Digitalriver\DrPay\Observer\UnsetDrToken" disabled="false"/>
     </event>
     <event name="checkout_cart_update_items_before">
-        <observer name="CreateDrCart" instance="Digitalriver\DrPay\Observer\CreateDrCart" disabled="false"/>
+        <observer name="UnsetDrToken" instance="Digitalriver\DrPay\Observer\UnsetDrToken" disabled="false"/>
     </event>
     <event name="sales_quote_remove_item">
-        <observer name="CreateDrCart" instance="Digitalriver\DrPay\Observer\CreateDrCart" disabled="false"/>
+        <observer name="UnsetDrToken" instance="Digitalriver\DrPay\Observer\UnsetDrToken" disabled="false"/>
     </event>
 	<event name="dr_place_order_success">
         <observer name="dr_place_order_success" instance="Digitalriver\DrPay\Observer\UpdateOrderDetails" />

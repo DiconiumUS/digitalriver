@@ -39,7 +39,7 @@ class CreateDrOrder implements ObserverInterface
 		$this->jsonHelper = $jsonHelper;
         $this->_storeManager = $storeManager;
 		$this->_eventManager = $eventManager;
-                $this->addressRepository = $addressRepository;
+        $this->addressRepository = $addressRepository;
     }
 
     /**

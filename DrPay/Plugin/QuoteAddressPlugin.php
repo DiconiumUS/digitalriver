@@ -14,10 +14,6 @@ class QuoteAddressPlugin
     
     protected $scopeConfig;
     
-    protected $_customerFactory;
-    
-    protected $_addressFactory;
-    
     const XML_PATH_ENABLE_DRPAY = 'dr_settings/config/active';
     
     public function __construct(
