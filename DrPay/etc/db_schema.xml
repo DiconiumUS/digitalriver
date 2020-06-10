@@ -19,11 +19,14 @@
     <table name="electronic_fulfillment" resource="default" engine="innodb" comment="">
     	<column xsi:type="int" name="entity_id" nullable="false" unsigned="true" identity="true" comment="Entity ID"/>
     	<column xsi:type="text" name="request_obj" nullable="false" comment="Request Object" />
-    	<column xsi:type="text" name="requisition_id" nullable="false" comment="Requisition ID" />
+    	<column xsi:type="varchar" name="requisition_id" nullable="false" length="25" comment="Requisition ID" />
     	<column xsi:type="text" name="line_item_ids" nullable="false" comment="Line Item Ids" />
     	<column xsi:type="int" name="post_status" nullable="false" comment="Post Status" default="0"/> 
     	<constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
         </constraint>
+        <index referenceId="INDEX_REQUISITION_ID" indexType="btree">
+            <column name="requisition_id"/>
+        </index>
     </table>
 </schema>
