@@ -13,6 +13,9 @@ var config = {
             'Magento_Checkout/js/view/payment': {
                 'Digitalriver_DrPay/js/view/payment': true
             },
+            'Magento_Checkout/js/view/shipping-address/address-renderer/default': {
+                'Digitalriver_DrPay/js/view/shipping-address/address-renderer/default': true
+            }
         }
     },    
     map: {
@@ -21,4 +24,5 @@ var config = {
         }
     }
 };
+
 
