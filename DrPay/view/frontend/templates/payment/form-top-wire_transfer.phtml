@@ -117,8 +117,8 @@ function loadScriptWire(url, callback){
 				drWirejs.createSource(payload).then(function(result) {
 					console.log(payload);
 					console.log(result);
-	                cartCache.set('totals',null);
-	                defaultTotal.estimateTotals();
+	                //cartCache.set('totals',null);
+	                //defaultTotal.estimateTotals();
 					if(result.error || result.source.state == "failed") {
 						//Something went wrong, display the error message to the customer
 						document.getElementById('wire-message').innerHTML = "";
