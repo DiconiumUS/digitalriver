@@ -4,22 +4,22 @@ $paymentInstruction = $order->getPayment()->getAdditionalInformation();
 ?>
 <?php if($order->getPayment()->getMethod() == "drpay_wire_transfer" && isset($paymentInstruction)): ?>
 <div style="border: 1px solid #ccc;margin: 10px 0 20px;">
-	<h3 style="background: #1979c3;padding: 10px 15px;margin: 0;color: #fff;"><?php echo __("Payment Instructions") ?></h3>
+	<h3 style="background: #1979c3;padding: 10px 15px;margin: 0;color: #fff;"><?php echo $block->escapeHtml(__("Payment Instructions")); ?></h3>
 	<div style="padding: 15px;">
-		<p><?php echo __("Please make your payment now to complete your order.") ?></p>
-		<p><?php echo __("Provide your bank with the following wire transfer instruction:") ?></p>
-		<p><b><?php echo __("Amount:") ?></b> <?php echo $order->formatPrice($order->getGrandTotal()); ?></p>
-		<p><b><?php echo __("Wire Transfer Reference Number:") ?></b> <?php echo $paymentInstruction['referenceId']; ?></p>
-		<p><b><?php echo __("Bank:") ?></b> <?php echo $paymentInstruction['bankName']; ?></p>
+		<p><?php echo $block->escapeHtml(__("Please make your payment now to complete your order.")); ?></p>
+		<p><?php echo $block->escapeHtml(__("Provide your bank with the following wire transfer instruction:")); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Amount:")); ?></b> <?php echo $order->formatPrice($block->escapeHtml($order->getGrandTotal())); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Wire Transfer Reference Number:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['referenceId']); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Bank:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['bankName']); ?></p>
 		<?php if(isset($paymentInstruction['additionalBankInformation'])):?>
-			<p><b><?php echo __("Location:") ?></b> <?php echo $paymentInstruction['additionalBankInformation']. ', ' . $paymentInstruction['city']. ', ' . $paymentInstruction['country']; ?></p>
+			<p><b><?php echo $block->escapeHtml(__("Location:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['additionalBankInformation']). ', ' . $block->escapeHtml($paymentInstruction['city']). ', ' . $block->escapeHtml($paymentInstruction['country']); ?></p>
 		<?php else:?>
-			<p><b><?php echo __("Location:") ?></b> <?php echo $paymentInstruction['city']. ', ' . $paymentInstruction['country']; ?></p>
+			<p><b><?php echo $block->escapeHtml(__("Location:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['city']). ', ' . $block->escapeHtml($paymentInstruction['country']); ?></p>
 		<?php endif;?>
-		<p><b><?php echo __("Account Holder:") ?></b> <?php echo $paymentInstruction['accountHolder']; ?></p>
-		<p><b><?php echo __("Account Number:") ?></b> <?php echo $paymentInstruction['accountNumber']; ?></p>
-		<p><b><?php echo __("Swift Code:") ?></b> <?php echo $paymentInstruction['swiftCode']; ?></p>
-		<p><b><?php echo __("Expiration Time:") ?></b> <?php echo $block->formatDate($paymentInstruction['expirationTime'], \IntlDateFormatter::MEDIUM, true); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Account Holder:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['accountHolder']); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Account Number:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['accountNumber']); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Swift Code:")); ?></b> <?php echo $block->escapeHtml($paymentInstruction['swiftCode']); ?></p>
+		<p><b><?php echo $block->escapeHtml(__("Expiration Time:")); ?></b> <?php echo $block->formatDate($paymentInstruction['expirationTime'], \IntlDateFormatter::MEDIUM, true); ?></p>
 		<!-- <p>Please ensure you use your <b>Reference Number</b> as your transaction reference when you electronically transfer the money  for payment. </p> -->
 	</div>
 </div>

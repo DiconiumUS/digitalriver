@@ -121,13 +121,13 @@ function loadScriptDebit(url, callback){
 						jQuery('body').trigger('processStop');
                         //Something went wrong, display the error message to the customer
                         document.getElementById('directdebit-message').innerHTML ="";
-                        document.getElementById('directdebit-message').innerHTML = '<?php echo __("Error! Please check your address and try again.")?>';
+                        document.getElementById('directdebit-message').innerHTML = '<?php echo $block->escapeHtml(__("Error! Please check your address and try again."));?>';
                     } else {
                         document.getElementById('directdebit-message').innerHTML ="";
                         //Success!  You can now send the token to your server for use in downstream API calls.
                          var source = result.source;
                          var redirectUrl = source.redirect.redirectUrl; 
-                         var edit = '<?php echo __('Edit')?>';
+                         var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
                          window.checkoutConfig.payment.drpay_direct_debit.redirect_url = redirectUrl;
                          if(redirectUrl){
                             jQuery('.primary.direct_debit-btn-second .action.primary.checkout').trigger('click');
