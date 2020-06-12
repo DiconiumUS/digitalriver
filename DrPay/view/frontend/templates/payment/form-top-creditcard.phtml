@@ -263,7 +263,7 @@ function loadScriptCard(url, callback){
 		});
 		if(creditCardDetails) { 
 			var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
-			var info = '<?php echo $block->escapeJs(__('ending in'))?>';
+			var info = '<?php echo $block->escapeJs(__('ending in'));?>';
 			var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>"; 
 			var cartinfo = "<div class='card-info'>"+ creditCardDetails.brand + ' ' + info + ' '+ creditCardDetails.lastFourDigits+"</div>";
 			var editlink = "<a class='payment-edit' href = 'javascript:void(0)' id='payment-edit' onclick='displayDrForm()'>"+edit+"</a>";
@@ -331,7 +331,7 @@ function loadScriptCard(url, callback){
                         window.checkoutConfig.payment.drpay_cards = cardslist;
 						if(jQuery('input[name="selected_card"]').length > 0){ 
 							hideForm(); 
-							var newcardlaebl = '<?php echo $block->escapeHtml(__('New Card'));?>';
+							var newcardlaebl = '<?php echo $block->escapeJs(__('New Card'));?>';
 							tmpHtml = '<div><input type="radio" name="selected_card" value="" onclick="showForm()"/>'+ newcardlaebl +'</div>'; 
 							jQuery(".saved_cards_inner").append(tmpHtml); 
                             // Default selection won't trigger, so noting is selected
