@@ -60,7 +60,8 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 				$total->setSubtotal($productTotal - $productTax + $discountAmount);
 				
 				$total->setShippingInclTax($shippingAndHandling);
-				$total->setShippingAmount($shippingAndHandling - $shippingTax);
+                                // DCC-336: Shipping Tax removed because amount to be shown varies in incl & excl tax cases while applying coupon
+				$total->setShippingAmount($shippingAndHandling);
 				$total->setShippingTaxAmount($shippingTax);
 				$total->setBaseShippingTaxAmount($this->convertToBaseCurrency($shippingTax));
 			} else {
