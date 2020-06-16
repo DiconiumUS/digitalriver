@@ -85,10 +85,13 @@ define([
             return active;
         },
 		placeOrder: function () {
+                    console.log('In method renderer place order function');
 			//update payment method information if additional data was changed
 			this.selectPaymentMethod();
+                        console.log('after selectpaymentmethod from method renderer place order function');
 			setPaymentMethodAction(this.messageContainer).done(
 				function () {
+                                    console.log('Redirecting to given url');
 					$.mage.redirect(window.checkoutConfig.payment.drpay_wire_transfer.redirect_url);
 				}
 			);
