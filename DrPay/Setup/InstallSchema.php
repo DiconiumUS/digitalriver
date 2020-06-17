@@ -61,6 +61,12 @@ class InstallSchema implements InstallSchemaInterface
                     'Status'
                 );
             $installer->getConnection()->createTable($table);
+            
+            $setup->getConnection()->addIndex(
+                $setup->getTable('electronic_fulfillment'),
+                'ELECTRONIC_FULFILLMENT_REQUISITION_ID',
+                'requisition_id'
+            );
         }
         $installer->endSetup();
     }
