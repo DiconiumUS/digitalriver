@@ -86,7 +86,7 @@ define([
         },
 		placeOrder: function () {
 			//update payment method information if additional data was changed
-			this.selectPaymentMethod();
+//			this.selectPaymentMethod();
 			setPaymentMethodAction(this.messageContainer).done(
 				function () {
 					$.mage.redirect(window.checkoutConfig.payment.drpay_direct_debit.redirect_url);
