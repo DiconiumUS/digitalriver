@@ -122,13 +122,13 @@ function loadScriptWire(url, callback){
 					if(result.error || result.source.state == "failed") {
 						//Something went wrong, display the error message to the customer
 						document.getElementById('wire-message').innerHTML = "";
-						document.getElementById('wire-message').innerHTML = "<?php echo __("Failed to get Source! Please try again.")?>";
+						document.getElementById('wire-message').innerHTML = "<?php echo $block->escapeHtml(__("Failed to get Source! Please try again."));?>";
 					} else {
 						document.getElementById('wire-message').innerHTML ="";
 						//Success!  You can now send the token to your server for use in downstream API calls.
 						 var source = result.source;
-                         var edit = '<?php echo __('Edit')?>';
-                         var checkoutTranslate = '<?php echo __('Checkout')?>';
+                         var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
+                         var checkoutTranslate = '<?php echo $block->escapeJs(__('Checkout'));?>';
 						 window.checkoutConfig.payment.drpay_wire_transfer.redirect_url = BASE_URL + 'drpay/wiretransfer/success';
 						 if(source){ 
 						 	jQuery.ajax({
@@ -188,8 +188,8 @@ function loadScriptWire(url, callback){
 		});		
 	}	
 	function continueWireTransfer() {
-		var edit = '<?php echo __('Edit')?>';
-		var checkoutTranslate = '<?php echo __('Checkout')?>';
+		var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
+		var checkoutTranslate = '<?php echo $block->escapeJs(__('Checkout'));?>';
 		var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
 		var editlink = "<a class='payment-edit' id='payment-edit-wire_transfer' onclick='editWireTransfer()' href='javascript:void(0)'>"+edit+"</a>";
 		jQuery("._active .payment-data").html(title+editlink);						
