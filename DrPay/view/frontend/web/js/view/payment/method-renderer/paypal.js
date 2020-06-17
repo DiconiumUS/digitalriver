@@ -95,7 +95,7 @@ define(
 				/** Redirect to paypal */
 				continueToPayPal: function () {
 					//update payment method information if additional data was changed
-					this.selectPaymentMethod();
+//					this.selectPaymentMethod();
 					setPaymentMethodAction(this.messageContainer).done(
 						function () {
 							$.mage.redirect(window.checkoutConfig.payment.drpay_paypal.redirect_url);

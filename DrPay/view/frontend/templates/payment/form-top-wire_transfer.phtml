@@ -36,7 +36,6 @@ function loadScriptWire(url, callback){
 			var paymentForm = document.getElementById('drpay-wire-transfer-btn');
 				paymentForm.addEventListener('click', function(event) {
 				event.preventDefault();
-                                console.log('Saving Dr quote');
 				var payload = {};
 				//After submit the wire_transfer details create the cart
 	            jQuery.ajax({
@@ -139,7 +138,6 @@ function loadScriptWire(url, callback){
 								showLoader: true, //use for display loader 
 								success: function (response) {
 									if (response.success) {
-                                                                            console.log('Save dr source success');
 										continueWireTransfer();
 									}else{
 										//Show Error Message 
@@ -158,7 +156,6 @@ function loadScriptWire(url, callback){
 		});
 	} 
 	function editWireTransfer(){
-        console.log('In edit wire transfer');
 		require(["jquery"], function ($) {
 			$(".payment-methods .payment-group .step-title").css("display","block");
 			$(".payment-methods .payment-group .payment-method .payment-method-title").css("display","block");
@@ -191,7 +188,6 @@ function loadScriptWire(url, callback){
 		});		
 	}	
 	function continueWireTransfer() {
-            console.log('In continue to wire transfer');
 		var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
 		var checkoutTranslate = '<?php echo $block->escapeJs(__('Checkout'));?>';
 		var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
