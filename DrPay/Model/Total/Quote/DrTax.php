@@ -52,9 +52,7 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 			$shippingTax = $this->_checkoutSession->getDrShippingTax();
 			$shippingAndHandling = $this->_checkoutSession->getDrShippingAndHandling();
 			$orderTotal = $this->_checkoutSession->getDrOrderTotal();
-			$shippingDiscount = $quote->getShippingAddress()->getShippingDiscountAmount();
-			$shippingAndHandling = $shippingAndHandling + $shippingDiscount;
-			$discountAmount = abs($total->getDiscountAmount() + $shippingDiscount);
+			$discountAmount = abs($total->getDiscountAmount());
 
 			if($tax_inclusive){
 				$total->setSubtotalInclTax($productTotal + $discountAmount);
