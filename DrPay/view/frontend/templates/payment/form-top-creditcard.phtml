@@ -137,10 +137,10 @@ function loadScriptCard(url, callback){
 					if(result.error) {
 						//Something went wrong, display the error message to the customer
 						//document.getElementById('message').innerHTML ="";
-						//document.getElementById('message').innerHTML = "<?= $block->escapeHtml(__('Unable to process')); ?>";
+						//document.getElementById('message').innerHTML = "<?= $block->escapeJs($block->escapeHtml(__('Unable to process'))); ?>";
                                                 
                                                 document.getElementById('creditcard-message').innerHTML = ""; 
-                                                document.getElementById('creditcard-message').innerHTML = "<?= $block->escapeHtml(__('Unable to process')); ?>";
+                                                document.getElementById('creditcard-message').innerHTML = "<?= $block->escapeJs($block->escapeHtml(__('Unable to process'))); ?>";
 					} else {
 						//Success!  You can now send the token to your server for use in downstream API calls.
 						 var source = result.source;
@@ -176,13 +176,13 @@ function loadScriptCard(url, callback){
 	}
 	function getDrCreditCardOptions(element){		
 		if(element == 'cardnumber'){
-			mytext = '<?php echo $block->escapeJs(__("Credit Card Number"));?>';
+			mytext = '<?php echo $block->escapeJs($block->escapeHtml(__("Credit Card Number")));?>';
 		}
 		else if(element == 'cardexpiration'){
-			mytext = '<?php echo $block->escapeJs(__("Month/Year"));?>';
+			mytext = '<?php echo $block->escapeJs($block->escapeHtml(__("Month/Year")));?>';
 		}
 		else{
-			mytext = '<?php echo $block->escapeJs(__("Card Security Code"));?>';
+			mytext = '<?php echo $block->escapeJs($block->escapeHtml(__("Card Security Code")));?>';
 		}
 		response = {
 			classes: {
@@ -248,8 +248,8 @@ function loadScriptCard(url, callback){
 	} 
 	function hideDrForm(creditCardDetails) { 
 		if(creditCardDetails) { 
-			var edit = '<?php echo $block->escapeJs(__('Edit'));?>';
-			var info = '<?php echo $block->escapeJs(__('ending in'));?>';
+			var edit = '<?php echo $block->escapeJs($block->escapeHtml(__('Edit')));?>';
+			var info = '<?php echo $block->escapeJs($block->escapeHtml(__('ending in')));?>';
 			var title = "<div class='title'>"+jQuery(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>"; 
 			var cartinfo = "<div class='card-info'>"+ creditCardDetails.brand + ' ' + info + ' '+ creditCardDetails.lastFourDigits+"</div>";
 			var editlink = "<a class='payment-edit' href = 'javascript:void(0)' id='payment-edit' onclick='displayDrForm()'>"+edit+"</a>";
@@ -313,7 +313,7 @@ function loadScriptCard(url, callback){
 						} 
 						if(jQuery('input[name="selected_card"]').length > 0){ 
 							hideForm(); 
-							var newcardlaebl = '<?php echo $block->escapeJs(__('New Card'));?>';
+							var newcardlaebl = '<?php echo $block->escapeJs($block->escapeHtml(__('New Card')));?>';
 							tmpHtml = '<div><input type="radio" name="selected_card" value="" onclick="showForm()"/>'+ newcardlaebl +'</div>'; 
 							jQuery(".saved_cards_inner").append(tmpHtml); 
 							jQuery('input[name="selected_card"]:first').prop('checked', true); 

@@ -84,7 +84,7 @@ function loadScriptKlarna(url, callback){
 	function continueKlarnaOrder()
 	{
 		require(["jquery"], function ($) {		
-			var edit = '<?php echo __('Edit')?>';
+			var edit = '<?php echo $block->escapeJs($block->escapeHtml(__('Edit')));?>';
 			var title = "<div class='title'>"+$(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
 			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-klarna' onclick='displayKlarnaForm()'>"+edit+"</a>";
 			$("#payment-data_klarna").html(title+editlink);						
