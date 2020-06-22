@@ -246,10 +246,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $testorder = $this->getIsTestOrder();
                 if ($testorder) {
                     $url = $this->getDrBaseUrl() .
-                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&testOrder=true";
+                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&testOrder=true&expand=all";
                 } else {
                     $url = $this->getDrBaseUrl() .
-                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true";
+                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&expand=all";
                 }
 				$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
                 $data = [];
@@ -281,7 +281,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $price = $item->getCalculationPrice();
 					if($tax_inclusive){
 						$price = $item->getPriceInclTax();
-					}
+					}					
+					$actualprice = $price;
                     if ($item->getDiscountAmount() > 0) {
                         $price = $price - ($item->getDiscountAmount()/$lineItem["quantity"]);
                     }
@@ -294,6 +295,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $lineItem["pricing"]["salePrice"] = ['currency' => $currency, 'value' => round($price, 2)];
 					$lineItemLevelExtendedAttribute = ['name' => 'magento_quote_item_id', 'value' => $item->getId()];
                     $lineItem["customAttributes"]["attribute"][] = $lineItemLevelExtendedAttribute;
+					$lineItem["customAttributes"]["attribute"][] = ['name' => 'actual_price', 'value' => $actualprice];
 					if($item->getParentItemId()){
 						$parentExternalReferenceId = ["name" => "parentExternalReferenceId", "value" => $item->getParentItem()->getSku()];
 						$lineItem["customAttributes"]["attribute"][] = $parentExternalReferenceId;
@@ -389,14 +391,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 } else {					
 					$shippingAmount = $quote->getShippingAddress()->getShippingAmount();
 					$shippingInclTax = $quote->getShippingAddress()->getShippingInclTax();
-                                        if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
-	                    $shippingAmount = $shippingInclTax;
+                    if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
+						$shippingAmount = $shippingInclTax;
 					}
-                                        
-                                        // DCC-337: Fix for negative discount sent in DR-API
-                                        if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
-                                            $shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
-                                        } // end: if
+					if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
+						$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
+					}
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
                     $shippingTitle = $quote->getShippingAddress()->getShippingDescription();
                 }
@@ -455,12 +455,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$shippingTax = 0;
 				$productTax = 0;
 				$productTotal = 0;
+				$productTotalExcl = 0;
 				if(isset($result["cart"]['lineItems']) && isset($result["cart"]['lineItems']['lineItem'])) {					
 					$lineItems = $result["cart"]['lineItems']['lineItem'];
 					foreach($lineItems as $item){
 						$productTax += $item['pricing']['productTax']['value'];
 						$shippingTax += $item['pricing']['shippingTax']['value'];
-						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];				
+						$customAttributes = $item["customAttributes"]["attribute"];
+						foreach($customAttributes as $customAttribute){
+							if($customAttribute["name"] == "actual_price"){
+								$itemOriginalPrice = $customAttribute["value"];
+								$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
+							}
+						}
 					}
 				}
 				
@@ -468,6 +476,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$this->session->setDrProductTax($productTax);
 				$this->session->setDrShippingTax($shippingTax);
 				$this->session->setDrShippingAndHandling($shippingAmount);	
+				if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
+					$this->session->setDrShippingAndHandling($shippingAmount + $quote->getShippingAddress()->getShippingDiscountAmount());
+				}
+				$this->session->setDrProductTotalExcl($productTotalExcl);
 				if($tax_inclusive){				
 					$orderTotal = $productTotal + $shippingAmount;
 				}else{
