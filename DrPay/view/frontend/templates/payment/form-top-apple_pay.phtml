@@ -109,7 +109,7 @@ function loadScriptApple(url, callback){
     {
         require(["jquery"], function ($) {        
             var title = "<div class='title'>"+$(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>"; 
-            var edit = '<?php echo $block->escapeHtml(__('Edit'));?>';
+            var edit = '<?php echo $block->escapeJs($block->escapeHtml(__('Edit')));?>';
             var editlink = "<a class='payment-edit' id='payment-edit-applepay' onclick='editApplePay()' href='javascript:void(0)'>"+edit+"</a>";
             $("._active .payment-data").html(title+editlink);                        
             $("._active .payment-data").css("display","block"); 
