@@ -246,10 +246,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $testorder = $this->getIsTestOrder();
                 if ($testorder) {
                     $url = $this->getDrBaseUrl() .
-                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&testOrder=true&expand=all";
+                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&testOrder=true&expand=lineItems.lineItem.customAttributes";
                 } else {
                     $url = $this->getDrBaseUrl() .
-                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&expand=all";
+                    "v1/shoppers/me/carts/active?format=json&skipOfferArbitration=true&expand=lineItems.lineItem.customAttributes";
                 }
 				$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
                 $data = [];
@@ -461,7 +461,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					foreach($lineItems as $item){
 						$productTax += $item['pricing']['productTax']['value'];
 						$shippingTax += $item['pricing']['shippingTax']['value'];
-						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];				
+						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
 						$customAttributes = $item["customAttributes"]["attribute"];
 						foreach($customAttributes as $customAttribute){
 							if($customAttribute["name"] == "actual_price"){
