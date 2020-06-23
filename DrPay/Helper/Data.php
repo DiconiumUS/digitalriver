@@ -77,6 +77,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory,
         \Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Digitalriver\DrPay\Logger\Logger $logger
     ) {
         $this->session = $session;
@@ -92,6 +93,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_enc = $enc;
         $this->drFactory = $drFactory;
 		$this->remoteAddress = $remoteAddress;
+		$this->currencyFactory = $currencyFactory;
         parent::__construct($context);
         $this->_logger = $logger;
     }
@@ -485,7 +487,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				}else{
 					$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
 				}
-
+				$quote->setGrandTotal($orderTotal);
+				$quote->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
 				$this->session->setDrOrderTotal($orderTotal);
 				$this->session->setDrTax($result["cart"]["pricing"]["tax"]["value"]);
 
@@ -501,6 +504,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         $this->session->setDrQuoteError(true);
         return;
+    }	
+
+	public function convertToBaseCurrency($price){
+        $currentCurrency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+        $baseCurrency = $this->storeManager->getStore()->getBaseCurrency()->getCode();
+        $rate = $this->currencyFactory->create()->load($currentCurrency)->getAnyRate($baseCurrency);
+        $returnValue = $price * $rate;
+        return $returnValue;
     }
     /**
      * @param  mixed $sourceId
