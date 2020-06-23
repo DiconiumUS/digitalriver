@@ -392,7 +392,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
 	                    $shippingAmount = $shippingInclTax;
 					}
-					$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();                    
+					// DCC-337: Fix for negative discount sent in DR-API
+					if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
+						$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
+					} // end: if                    
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
                     $shippingTitle = $quote->getShippingAddress()->getShippingDescription();
                 }
