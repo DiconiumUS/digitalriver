@@ -53,13 +53,11 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 			$shippingAndHandling = $this->_checkoutSession->getDrShippingAndHandling();
 			$orderTotal = $this->_checkoutSession->getDrOrderTotal();
 			$shippingDiscount = $quote->getShippingAddress()->getShippingDiscountAmount();
-			$shippingAndHandling = $shippingAndHandling + $shippingDiscount;
 			$discountAmount = abs($total->getDiscountAmount() + $shippingDiscount);
-
+			$productTotalExcl = $this->_checkoutSession->getDrProductTotalExcl();
 			if($tax_inclusive){
 				$total->setSubtotalInclTax($productTotal + $discountAmount);
-				$total->setSubtotal($productTotal - $productTax + $discountAmount);
-				
+				$total->setSubtotal($productTotalExcl);				
 				$total->setShippingInclTax($shippingAndHandling);
 				$total->setShippingAmount($shippingAndHandling - $shippingTax);
 				$total->setShippingTaxAmount($shippingTax);
@@ -67,7 +65,6 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 			} else {
 				$total->setSubtotalInclTax($productTotal + $productTax + $discountAmount);
 				$total->setSubtotal($productTotal + $discountAmount);
-				
 				$total->setShippingInclTax($shippingAndHandling + $shippingTax);
 				$total->setShippingAmount($shippingAndHandling);
 				$total->setShippingTaxAmount($shippingTax);
