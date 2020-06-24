@@ -78,7 +78,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-        \Digitalriver\DrPay\Logger\Logger $logger
+        \Digitalriver\DrPay\Logger\Logger $logger		
     ) {
         $this->session = $session;
         $this->storeManager = $storeManager;
@@ -222,7 +222,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return array|null
      */
     public function createFullCartInDr($quote, $return = null)
-    {
+    {		
 		$address = $quote->getBillingAddress();
 		if (!$address || !$address->getCity()) {
 				return;
@@ -262,7 +262,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$taxInclusiveOverride["value"] = "true";
 				}
                 $data["cart"]["customAttributes"]["attribute"][] = $taxInclusiveOverride;
-                $lineItems = [];
+                $lineItems = [];				
+
                 $currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
                 foreach ($quote->getAllItems() as $item) {					
 					if($item->getProductType() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE || $item->getProductType() == \Magento\Bundle\Model\Product\Type::TYPE_CODE){
@@ -280,18 +281,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							$lineItem["quantity"] = $item->getQty() * $item->getParentItem()->getQty();
 						}
 					}
+					$sku = $item->getSku();
                     $price = $item->getCalculationPrice();
-					if($tax_inclusive){
+					if($tax_inclusive) {
 						$price = $item->getPriceInclTax();
-					}					
-					$actualprice = $price;
+					}
+					$actualprice = $price;					
+					
                     if ($item->getDiscountAmount() > 0) {
                         $price = $price - ($item->getDiscountAmount()/$lineItem["quantity"]);
                     }
                     if ($price <= 0) {
                         $price = 0;
                     }
-					$sku = $item->getSku();
+					
                     $lineItem["product"] = ['id' => $sku];
                     //$lineItem["product"] = ['id' => '5321623900'];
                     $lineItem["pricing"]["salePrice"] = ['currency' => $currency, 'value' => round($price, 2)];
@@ -340,7 +343,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $billingAddress["countryName"] = $address->getCountryId();
                     $billingAddress["phoneNumber"] = $address->getTelephone();
                     $billingAddress["emailAddress"] = $address->getEmail();
-                    $billingAddress["companyName"] = $address->getCompany();
+                    $billingAddress["companyName"] = ($address->getCompany()) ?: null;
 
                     $data["cart"]["billingAddress"] = $billingAddress;
                     if ($quote->getIsVirtual()) {
@@ -381,22 +384,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         $shippingAddress["countryName"] = $address->getCountryId();
                         $shippingAddress["phoneNumber"] = $address->getTelephone();
                         $shippingAddress["emailAddress"] = $address->getEmail();
-                        $shippingAddress["companyName"] = $address->getCompany();
+                        $shippingAddress["companyName"] = ($address->getCompany()) ?: null;
 
                         $data["cart"]["shippingAddress"] = $shippingAddress;
                     }
                 }
                 if ($quote->getIsVirtual()) {
+					$originalShippingAmount = 0;
                     $shippingAmount = 0;
 					$shippingMethod = '';
                     $shippingTitle = "Shipping Price";
-                } else {					
+                } else {
 					$shippingAmount = $quote->getShippingAddress()->getShippingAmount();
 					$shippingInclTax = $quote->getShippingAddress()->getShippingInclTax();
                     if($tax_inclusive && $shippingInclTax > 0 && $shippingAmount != 0){
 						$shippingAmount = $shippingInclTax;
 					}
-					if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
+					$originalShippingAmount = $shippingAmount;
+					$this->_logger->error("SHIPPING DISCOUNT " . $quote->getShippingAddress()->getShippingDiscountAmount());
+					if(!empty($quote->getShippingAddress()->getDiscountDescription()) && $shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
 						$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
 					}
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
@@ -463,36 +469,62 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					foreach($lineItems as $item){
 						$productTax += $item['pricing']['productTax']['value'];
 						$shippingTax += $item['pricing']['shippingTax']['value'];
-						$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
-						$customAttributes = $item["customAttributes"]["attribute"];
-						foreach($customAttributes as $customAttribute){
-							if($customAttribute["name"] == "actual_price"){
-								$itemOriginalPrice = $customAttribute["value"];
-								$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
+						
+						if($tax_inclusive){
+							//$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+							$customAttributes = $item["customAttributes"]["attribute"];
+							foreach($customAttributes as $customAttribute){
+								if($customAttribute["name"] == "actual_price"){
+									$productTotal = $itemOriginalPrice = $customAttribute["value"];
+									$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
+								}
+							}
+						}
+						else {
+							$customAttributes = $item["customAttributes"]["attribute"];
+							foreach($customAttributes as $customAttribute){
+								if($customAttribute["name"] == "actual_price"){
+									$productTotal = $customAttribute["value"];
+								}
 							}
 						}
 					}
 				}
+
+				if($tax_inclusive) {
+					// Acceptable hack - this is display only
+					$shippingDiff = $result["cart"]['pricing']['shippingAndHandling']['value'] - $shippingTax;
+					$shippingAmountExcl = $shippingDiff;
+					if($shippingDiff > 0 ){
+						$shippingTaxRate = $result["cart"]['pricing']['shippingAndHandling']['value'] / $shippingDiff;
+						$shippingAmountExcl =  $originalShippingAmount / $shippingTaxRate;
+					}
+					$quote->setShippingInclTax($shippingAmount);
+					$quote->setShippingAmount($shippingAmountExcl);
+				}
+				else {
+					$shippingAmountExcl = $result["cart"]['pricing']['shippingAndHandling']['value'];
+					$shippingAmount = $shippingAmountExcl + $shippingTax;
+					$productTotalExcl = $productTotal;
+					$productTotal = $productTotalExcl + $productTax;	
+					$this->session->setDrShippingAndHandling($shippingAmount);	
+				}				
 				
 				$this->session->setDrProductTotal($productTotal);
 				$this->session->setDrProductTax($productTax);
-				$this->session->setDrShippingTax($shippingTax);
-				$this->session->setDrShippingAndHandling($shippingAmount);	
-				if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
-					$this->session->setDrShippingAndHandling($shippingAmount + $quote->getShippingAddress()->getShippingDiscountAmount());
-				}
+				$this->session->setDrShippingTax($shippingTax);				
+				$this->session->setDrShippingAndHandlingExcl($shippingAmountExcl);
 				$this->session->setDrProductTotalExcl($productTotalExcl);
-				if($tax_inclusive){				
-					$orderTotal = $productTotal + $shippingAmount;
-				}else{
-					$orderTotal = $productTotal + $productTax + $shippingTax + $shippingAmount;
-				}
+				
+				$orderTotal = $result["cart"]['pricing']['orderTotal']['value'];
 				$quote->setGrandTotal($orderTotal);
 				$quote->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
 				$this->session->setDrOrderTotal($orderTotal);
-				$this->session->setDrTax($result["cart"]["pricing"]["tax"]["value"]);
-
-                $this->session->setMagentoAppliedTax($address->getTaxAmount());
+				
+				$drtax = $result["cart"]["pricing"]["tax"]["value"];
+				$quote->setTaxAmount($drtax);
+				$quote->setBaseTaxAmount($drtax);
+				$this->session->setDrTax($drtax);
                 if ($return) {
                     return $result;
                 } else {
@@ -504,7 +536,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         $this->session->setDrQuoteError(true);
         return;
-    }	
+    }
 
 	public function convertToBaseCurrency($price){
         $currentCurrency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
