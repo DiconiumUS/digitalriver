@@ -475,7 +475,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
 								if($customAttribute["name"] == "actual_price"){
-									$productTotal = $itemOriginalPrice = $customAttribute["value"];
+									$productTotal += $itemOriginalPrice = $customAttribute["value"];
 									$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
 								}
 							}
@@ -484,7 +484,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
 								if($customAttribute["name"] == "actual_price"){
-									$productTotal = $customAttribute["value"];
+									$productTotal += $customAttribute["value"];
 								}
 							}
 						}
