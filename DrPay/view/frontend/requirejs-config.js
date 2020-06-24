@@ -15,6 +15,12 @@ var config = {
             },
             'Magento_Checkout/js/view/shipping-address/address-renderer/default': {
                 'Digitalriver_DrPay/js/view/shipping-address/address-renderer/default': true
+            },
+            'Magento_Checkout/js/action/get-payment-information': {
+                'Digitalriver_DrPay/js/action/get-payment-information-mixin': true
+            },
+			'Magento_Checkout/js/action/set-shipping-information': {
+                'Digitalriver_DrPay/js/action/set-shipping-information-mixin': true
             }
         }
     },    
@@ -24,5 +30,4 @@ var config = {
         }
     }
 };
-
 
