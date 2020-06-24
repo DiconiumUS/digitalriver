@@ -18,6 +18,9 @@ var config = {
             },
             'Magento_Checkout/js/action/get-payment-information': {
                 'Digitalriver_DrPay/js/action/get-payment-information-mixin': true
+            },
+			'Magento_Checkout/js/action/set-shipping-information': {
+                'Digitalriver_DrPay/js/action/set-shipping-information-mixin': true
             }
         }
     },    

@@ -11,11 +11,10 @@ define([
     'Magento_Checkout/js/model/error-processor',
     'Magento_Customer/js/model/customer',
     'Magento_Checkout/js/model/payment/method-converter',
-    'Magento_Checkout/js/model/payment-service',
-	
-        'Magento_Checkout/js/model/cart/totals-processor/default',
-        'Magento_Checkout/js/model/cart/cache'
-], function ($, quote, urlBuilder, storage, errorProcessor, customer, methodConverter, paymentService,  defaultTotal, cartCache) {
+    'Magento_Checkout/js/model/payment-service',	
+	'Magento_Checkout/js/model/cart/totals-processor/default',
+	'Magento_Checkout/js/model/cart/cache'
+], function ($, quote, urlBuilder, storage, errorProcessor, customer, methodConverter, paymentService, defaultTotal, cartCache) {
     'use strict';
 	var mixinBilling = {
 		getPaymentInformationAction: function () {
