@@ -286,7 +286,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					if($tax_inclusive) {
 						$price = $item->getPriceInclTax();
 					}
-					$actualprice = $price;					
+					$actualprice = round($price,2);
 					
                     if ($item->getDiscountAmount() > 0) {
                         $price = $price - ($item->getDiscountAmount()/$lineItem["quantity"]);
@@ -300,7 +300,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $lineItem["pricing"]["salePrice"] = ['currency' => $currency, 'value' => round($price, 2)];
 					$lineItemLevelExtendedAttribute = ['name' => 'magento_quote_item_id', 'value' => $item->getId()];
                     $lineItem["customAttributes"]["attribute"][] = $lineItemLevelExtendedAttribute;
-					$lineItem["customAttributes"]["attribute"][] = ['name' => 'actual_price', 'value' => $actualprice];
+					$lineItem["customAttributes"]["attribute"][] = ['name' => 'originalProductPrice', 'value' => $actualprice];
 					if($item->getParentItemId()){
 						$parentExternalReferenceId = ["name" => "parentExternalReferenceId", "value" => $item->getParentItem()->getSku()];
 						$lineItem["customAttributes"]["attribute"][] = $parentExternalReferenceId;
@@ -343,7 +343,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $billingAddress["countryName"] = $address->getCountryId();
                     $billingAddress["phoneNumber"] = $address->getTelephone();
                     $billingAddress["emailAddress"] = $address->getEmail();
-                    $billingAddress["companyName"] = ($address->getCompany()) ?: null;
+                    $billingAddress["companyName"] = ($address->getCompany()) ?: '';
 
                     $data["cart"]["billingAddress"] = $billingAddress;
                     if ($quote->getIsVirtual()) {
@@ -384,7 +384,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         $shippingAddress["countryName"] = $address->getCountryId();
                         $shippingAddress["phoneNumber"] = $address->getTelephone();
                         $shippingAddress["emailAddress"] = $address->getEmail();
-                        $shippingAddress["companyName"] = ($address->getCompany()) ?: null;
+                        $shippingAddress["companyName"] = ($address->getCompany()) ?: '';
 
                         $data["cart"]["shippingAddress"] = $shippingAddress;
                     }
@@ -401,7 +401,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						$shippingAmount = $shippingInclTax;
 					}
 					$originalShippingAmount = $shippingAmount;
-					$this->_logger->error("SHIPPING DISCOUNT " . $quote->getShippingAddress()->getShippingDiscountAmount());
 					if(!empty($quote->getShippingAddress()->getDiscountDescription()) && $shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
 						$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
 					}
@@ -411,7 +410,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 if ($shippingMethod) {
                     $shippingDetails =  [];
                     $shippingDetails["shippingOffer"]["offerId"] = $this->getShippingOfferId();
-                    $shippingDetails["shippingOffer"]["customDescription"] = $shippingTitle;
+                    //$shippingDetails["shippingOffer"]["customDescription"] = $shippingTitle;
                     $shippingDetails["shippingOffer"]["overrideDiscount"]["discount"] = round($shippingAmount, 2);
                     $shippingDetails["shippingOffer"]["overrideDiscount"]["discountType"] = "amount";
                     $data["cart"]["appliedOrderOffers"] = $shippingDetails;
@@ -474,7 +473,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							//$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
-								if($customAttribute["name"] == "actual_price"){
+								if($customAttribute["name"] == "originalProductPrice"){
 									$productTotal += $itemOriginalPrice = $customAttribute["value"];
 									$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
 								}
@@ -483,7 +482,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						else {
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
-								if($customAttribute["name"] == "actual_price"){
+								if($customAttribute["name"] == "originalProductPrice"){
 									$productTotal += $customAttribute["value"];
 								}
 							}
@@ -524,7 +523,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				$drtax = $result["cart"]["pricing"]["tax"]["value"];
 				$quote->setTaxAmount($drtax);
 				$quote->setBaseTaxAmount($drtax);
+				$quote->setDrTax($drtax);
 				$this->session->setDrTax($drtax);
+
                 if ($return) {
                     return $result;
                 } else {
@@ -699,19 +700,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getDrCart()
     {
-		$result = "";
-        if ($this->getDrBaseUrl() && $this->session->getDrAccessToken()) {
-            $accessToken = $this->session->getDrAccessToken();
-            $url = $this->getDrBaseUrl()."v1/shoppers/me/carts/active?format=json&expand=all";
-            
-            $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
-            $this->curl->addHeader("Content-Type", "application/json");
-            $this->curl->addHeader("Authorization", "Bearer " . $accessToken);
-            $this->curl->get($url);
-            $result = $this->curl->getBody();
-            $result = json_decode($result, true);
-        }
-        return $result;
+		return '';		
 	}
     /**
      * @param  mixed $accessToken
