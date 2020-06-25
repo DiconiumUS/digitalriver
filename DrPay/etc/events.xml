@@ -37,4 +37,7 @@
     <event name="order_cancel_after">
         <observer name="salesOrderCancel" instance="Digitalriver\DrPay\Observer\OrderCancelObserver" disabled="false"/>
     </event>
+    <event name="customer_address_save_after">
+        <observer name="customer_address_after_save_dr_observer" instance="Digitalriver\DrPay\Observer\SaveAddressAfterObserver" />
+    </event>
 </config>
