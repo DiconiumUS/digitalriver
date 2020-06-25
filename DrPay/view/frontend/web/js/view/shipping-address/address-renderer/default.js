@@ -18,13 +18,7 @@ define([
             selectAddress: function () {
                 selectShippingAddressAction(this.address());
                 checkoutData.setSelectedShippingAddress(this.address().getKey());
-                var shippingAddressFormData = checkoutData.getShippingAddressFromData();
-                if (shippingAddressFormData !== null) {
-                    shippingAddressFormData.country_id = this.address().countryId ? this.address().countryId : "";
-                    shippingAddressFormData.region_id = this.address().regionId ? this.address().regionId : "";
-                    shippingAddressFormData.postcode = this.address().postcode ? this.address().postcode : "";
-                    checkoutData.setShippingAddressFromData(shippingAddressFormData);
-                }
+                checkoutData.setShippingAddressFromData(this.address());
             }
         });
     }
