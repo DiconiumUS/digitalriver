@@ -468,14 +468,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					foreach($lineItems as $item){
 						$productTax += $item['pricing']['productTax']['value'];
 						$shippingTax += $item['pricing']['shippingTax']['value'];
+						$qty = $item['quantity'];
 						
 						if($tax_inclusive){
 							//$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
 								if($customAttribute["name"] == "originalProductPrice"){
-									$productTotal += $itemOriginalPrice = $customAttribute["value"];
-									$productTotalExcl += $itemOriginalPrice / (1 + $item['pricing']['taxRate']);
+									$itemOriginalPrice = $customAttribute["value"];
+									$productTotal += $itemOriginalPrice * $qty;
+									$productTotalExcl += ($itemOriginalPrice / (1 + $item['pricing']['taxRate'])) * $qty;
 								}
 							}
 						}
@@ -483,7 +485,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
 								if($customAttribute["name"] == "originalProductPrice"){
-									$productTotal += $customAttribute["value"];
+									$productTotal += $customAttribute["value"] * $qty;
 								}
 							}
 						}
