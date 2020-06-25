@@ -66,11 +66,11 @@ class UpdateOrderDetails implements ObserverInterface
 			$order->setDrOrderId($orderId);
 			$amount = $quote->getDrTax();
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-			if($tax_inclusive){
-				if(isset($result["submitCart"]["pricing"]["tax"]["value"])){
-					$amount = $result["submitCart"]["pricing"]["tax"]["value"];
-				}
-			}
+//			if($tax_inclusive){
+//				if(isset($result["submitCart"]["pricing"]["tax"]["value"])){
+//					$amount = $result["submitCart"]["pricing"]["tax"]["value"];
+//				}
+//			}
 			$order->setDrTax($amount);
 			$order->setTaxAmount($amount);
 			$order->setBaseTaxAmount($this->convertToBaseCurrency($amount));
@@ -90,28 +90,28 @@ class UpdateOrderDetails implements ObserverInterface
 				$model->setLineItemIds($this->jsonHelper->jsonEncode($lineItemIds));
 				$model->save();
 				$subtotal = 0;
-				foreach ($order->getAllItems() as $orderitem) {
-					$lineItems = $cartresult["cart"]['lineItems']['lineItem'];
-					foreach($lineItems as $item){
-						if($item["customAttributes"]["attribute"][0]["name"] == "magento_quote_item_id"){
-							$drItemMagentoRefId = $item["customAttributes"]["attribute"][0]["value"];
-							$magentoItemId = $orderitem->getQuoteItemId();
-						}else{
-							$flag = false;
-							$customAttributes = $item["customAttributes"]["attribute"];
-							foreach($customAttributes as $customAttribute){
-								if($customAttribute["name"] == "magento_quote_item_id"){
-									$drItemMagentoRefId = $customAttribute["value"];
-									$magentoItemId = $orderitem->getQuoteItemId();
-									$flag = true;
-									break;
-								}
+				foreach ($order->getAllItems() as $orderitem) {		
+					// get the magento lineitem quote ID
+					$magentoItemId = $orderitem->getQuoteItemId();			
+					
+					foreach($lineItems as $item){						
+						// loop thru the item's custom attributes to extract the magento_quote_item_id and the originalProductPrice
+						$customAttributes = $item["customAttributes"]["attribute"];
+						
+						$drItemMagentoRefId = '';
+						$originalProductPrice = 0;
+
+						foreach($customAttributes as $customAttribute) {
+							if($customAttribute["name"] == "magento_quote_item_id") {
+								$drItemMagentoRefId = $customAttribute["value"];
 							}
-							if(!$flag){
-								$drItemMagentoRefId = $item["product"]["externalReferenceId"];
-								$magentoItemId = $orderitem->getSku();
+							if($customAttribute["name"] == "originalProductPrice") {
+								$originalProductPrice = $customAttribute["value"];
 							}
 						}
+						$item['originalProductPrice'] = $originalProductPrice;
+
+						// if the DR cart's magento_quote_item_id == magentoItemId, then update the Items details
 						if($drItemMagentoRefId == $magentoItemId){
 							$this->updateDrItemsDetails($orderitem, $item, $tax_inclusive);
 							$subtotal = $subtotal + $orderitem->getRowTotal();
@@ -132,13 +132,16 @@ class UpdateOrderDetails implements ObserverInterface
 			$this->session->unsGuestCustomerEmail();
 			$this->session->unsDrQuoteId();
 			$this->session->unsDrTax();
-			$this->session->unsDrShipping();
-			$this->session->unsMagentoAppliedTax();
-			$this->session->unsDrProductTotal();
+
 			$this->session->unsDrProductTax();
+			$this->session->unsDrProductTotal();			
+			$this->session->unsDrProductTotalExcl();
+
 			$this->session->unsDrShippingTax();
 			$this->session->unsDrShippingAndHandling();
-			$this->session->unsDrOrderTotal();
+			$this->session->unsDrShippingAndHandlingExcl();
+			
+			$this->session->unsDrOrderTotal();			
 		}
     }
 
@@ -154,17 +157,22 @@ class UpdateOrderDetails implements ObserverInterface
 			if(isset($listprice["taxRate"])){
 				$orderitem->setTaxPercent($listprice["taxRate"] * 100);
 			}
-			if($tax_inclusive){				
+			if($tax_inclusive){
 				$discountAmount = $orderitem->getDiscountAmount();
 				($discountAmount) OR $discountAmount = 0;
+				$salePrice = $item['originalProductPrice'];
+				if(isset($listprice["taxRate"]) && $listprice["taxRate"] > 0) {
+					$salePrice = $item['originalProductPrice'] / (1 + $listprice["taxRate"]);
+				}
 				$orderitem->setDiscountTaxCompensationAmount(0);
 				$orderitem->setBaseDiscountTaxCompensationAmount(0);
-				$salePrice = $listprice["salePrice"]['value'] + ($discountAmount/$qty);
-				$salePriceWithQuantity = $listprice["salePriceWithQuantity"]['value'] - $total_tax_amount + $discountAmount;
 				$orderitem->setPrice($salePrice);
 				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
+				$salePriceWithQuantity = $listprice["salePriceWithQuantity"]['value'] - $total_tax_amount + $discountAmount;
 				$orderitem->setRowTotal($this->priceCurrency->round($salePriceWithQuantity));
 				$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
+				$orderitem->setRowTotalInclTax($this->priceCurrency->round($listprice["salePriceWithQuantity"]['value'] + $discountAmount));
+				$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));
 			}else{
 				$orderitem->setPriceInclTax($orderitem->getPrice() + $tax_amount);
 				$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPriceInclTax()));
