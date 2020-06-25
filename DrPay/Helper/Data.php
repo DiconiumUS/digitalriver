@@ -504,7 +504,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$quote->setShippingAmount($shippingAmountExcl);
 				}
 				else {
-					$shippingAmountExcl = $result["cart"]['pricing']['shippingAndHandling']['value'];
+					$shippingAmountExcl = $originalShippingAmount;
 					$shippingAmount = $shippingAmountExcl + $shippingTax;
 					$productTotalExcl = $productTotal;
 					$productTotal = $productTotalExcl + $productTax;	
