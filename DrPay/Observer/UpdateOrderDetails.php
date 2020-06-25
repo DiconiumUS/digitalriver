@@ -64,7 +64,7 @@ class UpdateOrderDetails implements ObserverInterface
 		if(isset($result["submitCart"]["order"]["id"])){
 			$orderId = $result["submitCart"]["order"]["id"];
 			$order->setDrOrderId($orderId);
-			$amount = $quote->getDrTax();
+			$amount = $this->session->getDrTax();
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 //			if($tax_inclusive){
 //				if(isset($result["submitCart"]["pricing"]["tax"]["value"])){
