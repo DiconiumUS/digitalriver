@@ -1,10 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="checkout" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Review Order</title>
+    </head>
+    <update handle="checkout_onepage_review_item_renderers"/>
     <body>
-        <referenceBlock name="navigation.sections" remove="true"/>
-        <referenceContainer name="content">
-            <block ifconfig="dr_settings/config/active" class="Digitalriver\DrPay\Block\Onepage\Review" name="drpay_onepage_success_review" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::review/form-success-review.phtml">
-            </block>
+        <referenceBlock name="head.components">
+            <block class="Magento\Framework\View\Element\Js\Components" name="paypal_express_review_checkout_head_components" template="Magento_Checkout::js/components.phtml"/>
+            <block class="Magento\Framework\View\Element\Js\Components" name="paypal_express_review_head_components" template="Magento_Paypal::js/components.phtml"/>
+        </referenceBlock>
+        <referenceContainer name="page.messages">
+            <block class="Magento\Paypal\Block\Cart\ValidationMessages" name="paypal.cart.validationmessages"/>
         </referenceContainer>
+        <referenceContainer name="content">
+            <referenceBlock name="navigation.sections" remove="true"/>
+            <block class="Digitalriver\DrPay\Block\Checkout\Review" name="drpay.paypal.review" template="Digitalriver_DrPay::review/form-review.phtml">
+                <block class="Magento\Paypal\Block\Express\Review" name="express.review.shipping.method" as="shipping_method" template="Magento_Paypal::express/review/shipping/method.phtml"/>
+                <block class="Magento\Checkout\Block\Cart\Totals" name="drpay.review.details.totals" as="review_totals" template="Digitalriver_DrPay::checkout/onepage/review/totals.phtml"/>
+                <block class="Magento\Framework\View\Element\RendererList" name="drpay.onepage.review.item.renderers" as="drpay.renderer.list"/>
+            </block>            
+        </referenceContainer>
+        <block class="Magento\Framework\View\Element\Template" name="additional.product.info" template="Magento_Theme::template.phtml"/>
     </body>
 </page>

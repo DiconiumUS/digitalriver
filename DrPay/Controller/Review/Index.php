@@ -7,64 +7,98 @@
 
 namespace Digitalriver\DrPay\Controller\Review;
 
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Braintree\Gateway\Config\PayPal\Config;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 
 /**
  * Class Index
  */
-class Index extends \Magento\Framework\App\Action\Action
-{
+class Index extends AbstractAction implements HttpPostActionInterface, HttpGetActionInterface
+{    
     /**
-     * @var \Digitalriver\DrPay\Helper\Data
+     * Constructor
+     *
+     * @param Context $context
+     * @param Config $config
+     * @param Session $checkoutSession
      */
-    protected $helper;
-    /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $checkoutSession;    
-    /**
-     * @var \Magento\Framework\View\Result\PageFactory
-     */
-    protected $pageFactory;
-    /**
-     * @var \Digitalriver\DrPay\Logger\Logger
-     */
-    protected $_logger;
-    
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Digitalriver\DrPay\Helper\Data $helper,
-        \Magento\Framework\View\Result\PageFactory $pageFactory,
-        \Digitalriver\DrPay\Logger\Logger $logger
+        Context $context,
+        Config $config,
+        Session $checkoutSession,
+        \Digitalriver\DrPay\Helper\Data $helper
     ) {
-        $this->helper           =  $helper;
-        $this->checkoutSession  = $checkoutSession;
-        $this->pageFactory      = $pageFactory;
-        $this->_logger      = $logger;
-        parent::__construct($context);
+        $this->helper =  $helper;
+        parent::__construct($context, $config, $checkoutSession);
     }
     
-    /**
-     * @return mixed|null
-     */
     public function execute()
     {
-        $quote = $this->checkoutSession->getQuote();
-        if ($quote && $quote->getId() && $quote->getIsActive()) {
-            if ($this->getRequest()->getParam('sourceId')) {
-                return $this->pageFactory->create();
-            } else {
-                $this->_logger->error('Order Review Error : Invalid Source Id');
-                $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
-                $this->_redirect('checkout/cart');
-                return;
+        $sourceIdValid = false;
+        $requestData = trim($this->getRequest()->getParam('sourceId'));
+
+        try {
+            if(empty($requestData)) {
+                throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
             } // end: if
-        } else {
-            $this->_logger->error('Order Review Error : Invalid Quote details');
-            $this->messageManager->addError(__('Sorry! An error occurred, Try again later.'));
-            $this->_redirect('checkout/cart');
-            return;
-        } // end: if
+
+            $paymentResult  = $this->helper->applyQuotePayment($requestData);
+            
+            if (empty($paymentResult) || isset($paymentResult["errors"])) {
+                throw new LocalizedException(__('Invalid Payment Details'));
+            } // end: if
+            
+            /*// verify against cookie value         
+            if(isset($_COOKIE['sessId']) && !empty($_COOKIE['sessId'])) {
+                $allowedPaymentMethods = [
+                    \Digitalriver\DrPay\Model\PayPal::PAYMENT_METHOD_PAYPAL_CODE,
+                    \Digitalriver\DrPay\Model\Klarna::PAYMENT_METHOD_KLARNA_CODE,
+                    \Digitalriver\DrPay\Model\DirectDebit::PAYMENT_METHOD_DIRECT_DEBIT_CODE,
+                ];
+                
+                $cookieValue = $_COOKIE['sessId'];
+                $splitValues = explode('#', $cookieValue);
+                
+                if(count($splitValues) == 2) { 
+                    $paymentMethod = base64_decode($splitValues[0]);
+                    $sourceIdValid = in_array($paymentMethod, $allowedPaymentMethods, TRUE) && $splitValues[1] == $requestData;
+                } // end: if
+            } // end: if
+            
+            if(empty($sourceIdValid)) {
+                throw new LocalizedException(__('Invalid Payment Details'));
+            } // end: if  */
+            
+            $quote = $this->checkoutSession->getQuote();
+            
+            $this->validateQuote($quote);
+
+            if ($quote->getPayment()->hasAdditionalInformation() && !$quote->getPayment()->getAdditionalInformation()) {
+                throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
+            }
+
+            /** @var \Magento\Framework\View\Result\Page $resultPage */
+            $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+
+            /** @var \Digitalriver\DrPay\Block\Checkout\Review $reviewBlock */
+            $reviewBlock = $resultPage->getLayout()->getBlock('drpay.paypal.review');
+
+            $reviewBlock->setQuote($quote);
+            $reviewBlock->getChildBlock('shipping_method')->setData('quote', $quote);
+
+            return $resultPage;
+        } catch (\Exception $e) {
+            $this->messageManager->addExceptionMessage($e, $e->getMessage());
+        } // end: try
+
+        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+
+        return $resultRedirect->setPath('checkout/cart', ['_secure' => true]);
     }
 }
