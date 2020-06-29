@@ -47,8 +47,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $curl;
     protected $drFactory;
     protected $jsonHelper;
+    
+    /**
+     * @var \Magento\Framework\App\Response\RedirectInterface
+     */
+    protected $redirect;
 
-        /**
+    /**
          * @param Context                                          $context
          * @param \Magento\Checkout\Model\Session                  $session
          * @param \Magento\Store\Model\StoreManagerInterface       $storeManager
@@ -62,6 +67,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
          * @param \Digitalriver\DrPay\Model\DrConnectorFactory $drFactory
          * @param \Magento\Framework\Json\Helper\Data $jsonHelper
          * @param \Digitalriver\DrPay\Logger\Logger                $logger
+         * @param \Magento\Framework\App\Response\RedirectInterface $redirect
          */
     public function __construct(
         Context $context,
@@ -78,7 +84,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-        \Digitalriver\DrPay\Logger\Logger $logger		
+        \Digitalriver\DrPay\Logger\Logger $logger,
+        \Magento\Framework\App\Response\RedirectInterface $redirect
     ) {
         $this->session = $session;
         $this->storeManager = $storeManager;
@@ -96,6 +103,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 		$this->currencyFactory = $currencyFactory;
         parent::__construct($context);
         $this->_logger = $logger;
+        $this->redirect = $redirect;
     }
     /**
      * @return string|null
@@ -222,7 +230,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return array|null
      */
     public function createFullCartInDr($quote, $return = null)
-    {		
+    {
+        $validateCall = $this->validateCartCall();
+        if($validateCall === false) {
+            return;
+        }
 		$address = $quote->getBillingAddress();
 		if (!$address || !$address->getCity()) {
 				return;
@@ -1026,6 +1038,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         }
         return $token;
+    }
+
+    /**
+     * Validate cart call
+     *
+     * @return boolean
+     */
+    public function validateCartCall() {
+        $refererUrl = $this->redirect->getRefererUrl();
+        if (strpos($refererUrl, 'checkout/cart') !== false) {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -14,13 +14,15 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Digitalriver\DrPay\Helper\Data $helper
     ) {
         $this->setCode('dr_tax');
         $this->_checkoutSession = $checkoutSession;
         $this->_storeManager = $storeManager;
 		$this->currencyFactory = $currencyFactory;
 		$this->scopeConfig = $scopeConfig;
+                $this->helper =  $helper;
     }
     
     /**
@@ -44,7 +46,8 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }	
 		
 		$accessToken = $this->_checkoutSession->getDrAccessToken();
-		if(!empty($accessToken)){
+                $validateCall = $this->helper->validateCartCall();
+		if(!empty($accessToken) &&  $validateCall === true){
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 			$drtax = $this->_checkoutSession->getDrTax();
 			$productTotal = $this->_checkoutSession->getDrProductTotal();
