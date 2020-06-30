@@ -413,7 +413,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						$shippingAmount = $shippingInclTax;
 					}
 					$originalShippingAmount = $shippingAmount;
-					if(!empty($quote->getShippingAddress()->getDiscountDescription()) && $shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
+					if($shippingAmount > 0 && $quote->getShippingAddress()->getShippingDiscountAmount() > 0) {
 						$shippingAmount = $shippingAmount - $quote->getShippingAddress()->getShippingDiscountAmount();
 					}
                     $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
