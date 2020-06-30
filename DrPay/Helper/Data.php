@@ -101,9 +101,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->drFactory = $drFactory;
 		$this->remoteAddress = $remoteAddress;
 		$this->currencyFactory = $currencyFactory;
+        $this->redirect = $redirect;
         parent::__construct($context);
         $this->_logger = $logger;
-        $this->redirect = $redirect;
     }
     /**
      * @return string|null
