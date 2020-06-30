@@ -44,6 +44,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function execute()
     {
         $data = $this->getRequest()->getContent();
+        $data = utf8_encode($data);
         $data = json_decode($data, true);
         $responseContent = [];
         if (is_array($data) && isset($data['OrderLevelElectronicFulfillmentRequest'])) {
