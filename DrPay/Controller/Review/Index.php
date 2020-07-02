@@ -31,7 +31,7 @@ class Index extends AbstractAction implements HttpPostActionInterface, HttpGetAc
         Context $context,
         Config $config,
         Session $checkoutSession,
-        \Digitalriver\DrPay\Helper\Data $helper
+        \Digitalriver\DrPay\Helper\Data $helper            
     ) {
         $this->helper =  $helper;
         parent::__construct($context, $config, $checkoutSession);
@@ -39,48 +39,45 @@ class Index extends AbstractAction implements HttpPostActionInterface, HttpGetAc
     
     public function execute()
     {
-        $sourceIdValid = false;
         $requestData = trim($this->getRequest()->getParam('sourceId'));
 
         try {
             if(empty($requestData)) {
                 throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
             } // end: if
-
-            $paymentResult  = $this->helper->applyQuotePayment($requestData);
             
-            if (empty($paymentResult) || isset($paymentResult["errors"])) {
+            $quote          = $this->checkoutSession->getQuote();
+            $paymentMethod  = $quote->getPayment()->getMethod();
+
+            if (empty($paymentMethod)) {
                 throw new LocalizedException(__('Invalid Payment Details'));
             } // end: if
             
-            /*// verify against cookie value         
-            if(isset($_COOKIE['sessId']) && !empty($_COOKIE['sessId'])) {
-                $allowedPaymentMethods = [
-                    \Digitalriver\DrPay\Model\PayPal::PAYMENT_METHOD_PAYPAL_CODE,
-                    \Digitalriver\DrPay\Model\Klarna::PAYMENT_METHOD_KLARNA_CODE,
-                    \Digitalriver\DrPay\Model\DirectDebit::PAYMENT_METHOD_DIRECT_DEBIT_CODE,
-                ];
+            if (empty($quote) || $quote->getPayment()->hasAdditionalInformation() && !$quote->getPayment()->getAdditionalInformation()) {
+                throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
+            } // end: if
+            
+            if(!empty($paymentMethod) && $paymentMethod === \Digitalriver\DrPay\Model\PayPal::PAYMENT_METHOD_PAYPAL_CODE) {
+                $paymentResult  = $this->helper->applyQuotePayment($requestData, true);
                 
-                $cookieValue = $_COOKIE['sessId'];
-                $splitValues = explode('#', $cookieValue);
+                if (empty($paymentResult) || isset($paymentResult['errors']) || empty($paymentResult['cart']) || empty($paymentResult['cart']['billingAddress'])) {
+                    throw new LocalizedException(__('Invalid Payment Details'));
+                } // end: if
                 
-                if(count($splitValues) == 2) { 
-                    $paymentMethod = base64_decode($splitValues[0]);
-                    $sourceIdValid = in_array($paymentMethod, $allowedPaymentMethods, TRUE) && $splitValues[1] == $requestData;
+                // Update cart totals from DR Result if quote is virtual
+                if ($quote->isVirtual()) {
+                    // Update Quote's Billing Address details from DR Order creation response
+                    $billingAddress = $this->helper->getDRApplyPaymentAddress('billing', $paymentResult);
+                    //print_r($billingAddress);
+                    if (!empty($billingAddress)) {
+                        $quote->getBillingAddress()->addData($billingAddress);
+                    } // end: if                
+                
+                    $this->helper->updateReviewTotals($quote, $paymentResult);
                 } // end: if
             } // end: if
             
-            if(empty($sourceIdValid)) {
-                throw new LocalizedException(__('Invalid Payment Details'));
-            } // end: if  */
-            
-            $quote = $this->checkoutSession->getQuote();
-            
             $this->validateQuote($quote);
-
-            if ($quote->getPayment()->hasAdditionalInformation() && !$quote->getPayment()->getAdditionalInformation()) {
-                throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
-            }
 
             /** @var \Magento\Framework\View\Result\Page $resultPage */
             $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);

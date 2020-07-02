@@ -564,12 +564,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param  mixed $sourceId
      * @return mixed|null
      */
-    public function applyQuotePayment($sourceId = null)
+    public function applyQuotePayment($sourceId = null, $expand = null)
     {
         $result = "";
         if ($this->getDrBaseUrl() && $this->session->getDrAccessToken() && $sourceId!=null) {
             $accessToken = $this->session->getDrAccessToken();
             $url = $this->getDrBaseUrl()."v1/shoppers/me/carts/active/apply-payment-method?format=json";
+            if(!empty($expand)) {
+                $url .= '&expand=all';
+            } // end: if
             $data["paymentMethod"]["sourceId"] = $sourceId;
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->addHeader("Content-Type", "application/json");
@@ -1439,4 +1442,128 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         
         return $result;
     } // end: function cancelFulfillmentRequestToDr
+    
+        /**
+     * Function to fetch Billing & Shipping address from DR Apply Quote Payment response
+     * 
+     * @param string $type | 'billing' or 'shipping'
+     * @param array $drResponse
+     * 
+     * @return array $returnAddress
+     */
+    public function getDRApplyPaymentAddress($type, $drResponse) {
+        $returnAddress  = [];   
+        $drAddress      = null;        
+        
+        if(!empty($type) && !empty($drResponse['cart'])) {         
+            if($type == 'billing') {
+                $drAddress = isset($drResponse['cart']['billingAddress']) ? $drResponse['cart']['billingAddress'] : null;
+            } else if($type == 'shipping') {
+                $drAddress = isset($drResponse['cart']['shippingAddress']) ? $drResponse['cart']['shippingAddress'] : null;
+            } else {
+                $this->_logger->error('Address Type missing');
+                return $returnAddress;
+            } // end: if 
+        } // end: if
+
+        if(!empty($drAddress) && is_array($drAddress)) {            
+            $addressFields = ['firstName', 'line1', 'city', 'countrySubdivision', 'postalCode', 'country', 'phoneNumber'];
+            
+            if(count(array_diff($addressFields, array_keys($drAddress))) == 0) {
+                // Get Region details
+                $region = $this->regionModel->loadByCode($drAddress['countrySubdivision'], $drAddress['country'])->getData();
+
+                $street = $drAddress['line1'];
+                $street .= (!empty($drAddress['line2'])) ? (' '.$drAddress['line2']) : null;
+                $street .= (!empty($drAddress['line3'])) ? (' '.$drAddress['line3']) : null;
+
+                $street = trim($street);
+                $phone  = str_replace('-', '', $drAddress['phoneNumber']);
+
+                $returnAddress = [
+                    'firstname'     => (!empty($drAddress['firstName'])) ? trim($drAddress['firstName']) : null,
+                    'lastname'      => (!empty($drAddress['lastName'])) ? trim($drAddress['lastName']) : null,
+                    'street'        => $street,
+                    'city'          => $drAddress['city'],
+                    'postcode'      => $drAddress['postalCode'],
+                    'country_id'    => $drAddress['country'],
+                    'region'        => !empty($region['name']) ? $region['name'] : null,
+                    'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
+                    'telephone'     => $phone
+                ];
+            } else {
+                $this->_logger->error('Mandatory Address Details missing');
+            }// end: if
+        } // end: if
+        
+        return $returnAddress;
+    } // end: function getDRApplyPaymentAddress 
+      
+    /**
+     * Function to re-calculate totals based on calculations present createFullCartInDr
+     * @param object $quote
+     * @param array $drResult
+     * 
+     */
+    public function updateReviewTotals($quote, $drResult) {    
+        $productTax         = 0;
+        $productTotal       = 0;
+        $productTotalExcl   = 0;
+        
+        $tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        
+        if(!isset($drResult['cart']['lineItems']) && !empty($drResult['cart']['lineItems'])) {
+            $this->_logger->error('Issue in Totals Calculation 1 !');
+            return false;
+        } // end: if
+        
+        try {
+            if ($quote->getIsVirtual()) {               
+                if(isset($drResult['cart']['lineItems']) && isset($drResult['cart']['lineItems']['lineItem'])) {	
+                    //echo "<br /> Inside LineItems ";
+                    foreach($drResult['cart']['lineItems']['lineItem'] as $item) {
+                        $productTax     += $item['pricing']['productTax']['value'];
+                        $qty            = $item['quantity'];
+
+                        foreach($item['customAttributes']['attribute'] as $customAttribute){
+                            if($customAttribute['name'] == 'originalProductPrice') {
+                                $productTotal += $customAttribute['value'] * $qty;
+                                
+                                if($tax_inclusive) {
+                                    $productTotalExcl += ($customAttribute['value'] / (1 + $item['pricing']['taxRate'])) * $qty;
+                                } // end: if
+                            } // end: if
+                        } // end: foreach
+                    } // end: foreach
+                } // end: if
+                
+                if(!$tax_inclusive) {
+                    echo "<br /> Not Inside TaxInclusive ";
+                    $productTotalExcl   = $productTotal;
+                    $productTotal       = $productTotalExcl + $productTax;	
+                } // end: if
+
+                $this->session->setDrProductTotal($productTotal);
+                $this->session->setDrProductTax($productTax);
+                $this->session->setDrProductTotalExcl($productTotalExcl);
+
+                $orderTotal = $drResult['cart']['pricing']['orderTotal']['value'];
+                $quote->setGrandTotal($orderTotal);
+                $quote->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
+                $this->session->setDrOrderTotal($orderTotal);
+                $drtax = $drResult['cart']['pricing']['tax']['value'];
+                $quote->setTaxAmount($drtax);
+                $quote->setBaseTaxAmount($drtax);
+                $quote->setDrTax($drtax);
+                $this->session->setDrTax($drtax);  
+                // Added to save quote
+                $quote->save();
+                $quote->collectTotals();
+                return true;                
+            } // end: if
+        } catch (Exception $ex) {
+            $this->_logger->error('Issue in Totals Calculation 2 !');
+            return false;
+        } // end: try
+    } // end: function updateReviewTotals
 }

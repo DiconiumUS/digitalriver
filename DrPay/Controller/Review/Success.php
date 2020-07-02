@@ -75,7 +75,6 @@ class Success extends \Magento\Framework\App\Action\Action
             $this->_redirect($this->errorRedirect);
             return;
         } else {
-            $this->_logger->info('Order Creation: Payment Method - '.$paymentMethod);
             $sourceId = base64_decode($sourceId);
             
             if ($quote->getId() && $quote->getIsActive()) {
@@ -85,7 +84,6 @@ class Success extends \Magento\Framework\App\Action\Action
                      */
                     $resultRedirect = $this->resultRedirectFactory->create();
                     $accessToken    = $this->checkoutSession->getDrAccessToken();
-                    $paymentResult  = $this->helper->applyQuotePayment($sourceId);
                     $cartresult     = $this->helper->getDrCart();
                     $result         = $this->helper->createOrderInDr($accessToken);
                     
