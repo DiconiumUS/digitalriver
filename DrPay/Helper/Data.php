@@ -1520,7 +1520,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         try {
             if ($quote->getIsVirtual()) {               
                 if(isset($drResult['cart']['lineItems']) && isset($drResult['cart']['lineItems']['lineItem'])) {	
-                    //echo "<br /> Inside LineItems ";
                     foreach($drResult['cart']['lineItems']['lineItem'] as $item) {
                         $productTax     += $item['pricing']['productTax']['value'];
                         $qty            = $item['quantity'];
@@ -1538,7 +1537,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 } // end: if
                 
                 if(!$tax_inclusive) {
-                    echo "<br /> Not Inside TaxInclusive ";
                     $productTotalExcl   = $productTotal;
                     $productTotal       = $productTotalExcl + $productTax;	
                 } // end: if

@@ -31,7 +31,7 @@ class Index extends AbstractAction implements HttpPostActionInterface, HttpGetAc
         Context $context,
         Config $config,
         Session $checkoutSession,
-        \Digitalriver\DrPay\Helper\Data $helper            
+        \Digitalriver\DrPay\Helper\Data $helper
     ) {
         $this->helper =  $helper;
         parent::__construct($context, $config, $checkoutSession);
@@ -68,7 +68,6 @@ class Index extends AbstractAction implements HttpPostActionInterface, HttpGetAc
                 if ($quote->isVirtual()) {
                     // Update Quote's Billing Address details from DR Order creation response
                     $billingAddress = $this->helper->getDRApplyPaymentAddress('billing', $paymentResult);
-                    //print_r($billingAddress);
                     if (!empty($billingAddress)) {
                         $quote->getBillingAddress()->addData($billingAddress);
                     } // end: if                
