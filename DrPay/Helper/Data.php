@@ -471,12 +471,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						$qty = $item['quantity'];
 						
 						if($tax_inclusive){
-							//$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
+							$productTotal += $item['pricing']['salePriceWithQuantity']['value'];
 							$customAttributes = $item["customAttributes"]["attribute"];
 							foreach($customAttributes as $customAttribute){
 								if($customAttribute["name"] == "originalProductPrice"){
 									$itemOriginalPrice = $customAttribute["value"];
-									$productTotal += $itemOriginalPrice * $qty;
+									//$productTotal += $itemOriginalPrice * $qty;
 									$productTotalExcl += ($itemOriginalPrice / (1 + $item['pricing']['taxRate'])) * $qty;
 								}
 							}
