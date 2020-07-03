@@ -101,8 +101,7 @@ $quote = $block->getQuote();
                             <div class="title" aria-selected="false" aria-expanded="false" tabindex="0" onclick="javascript:toggleContent('.content.minicart-items');">
                                 <strong role="heading" aria-level="1">
                                     <?php 
-                                    $cartHelper     = $this->helper(Magento\Checkout\Helper\Cart::class);
-                                    $itemsSummary   = $cartHelper->getSummaryCount();
+                                    $itemsSummary   = intval($quote->getItemsQty());
                                     $itemsText      = ($itemsSummary == 1)?' Item in Cart':' Items in Cart';
                                     ?>
                                     <span><?php echo isset($itemsSummary)?$itemsSummary:0; ?></span>
