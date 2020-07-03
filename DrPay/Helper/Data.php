@@ -1512,14 +1512,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         
         $tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         
-        if(!isset($drResult['cart']['lineItems']) && !empty($drResult['cart']['lineItems'])) {
+		if(isset($drResult["cart"]['lineItems']) && isset($drResult["cart"]['lineItems']['lineItem'])) {
             $this->_logger->error('Issue in Totals Calculation 1 !');
             return false;
         } // end: if
         
         try {
             if ($quote->getIsVirtual()) {               
-                if(isset($drResult['cart']['lineItems']) && isset($drResult['cart']['lineItems']['lineItem'])) {	
+				if(isset($drResult["cart"]['lineItems']) && isset($drResult["cart"]['lineItems']['lineItem'])) {	
                     foreach($drResult['cart']['lineItems']['lineItem'] as $item) {
                         $productTax     += $item['pricing']['productTax']['value'];
                         $qty            = $item['quantity'];
