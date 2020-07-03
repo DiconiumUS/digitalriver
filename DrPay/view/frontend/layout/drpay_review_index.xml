@@ -9,6 +9,10 @@
             <block class="Magento\Framework\View\Element\Js\Components" name="paypal_express_review_checkout_head_components" template="Magento_Checkout::js/components.phtml"/>
             <block class="Magento\Framework\View\Element\Js\Components" name="paypal_express_review_head_components" template="Magento_Paypal::js/components.phtml"/>
         </referenceBlock>
+        <referenceContainer name="header.container">
+            <referenceBlock name="top.search" remove="true"/>
+            <referenceBlock name="minicart" remove="true"/>
+        </referenceContainer>
         <referenceContainer name="page.messages">
             <block class="Magento\Paypal\Block\Cart\ValidationMessages" name="paypal.cart.validationmessages"/>
         </referenceContainer>

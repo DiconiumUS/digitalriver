@@ -1452,50 +1452,52 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return array $returnAddress
      */
     public function getDRApplyPaymentAddress($type, $drResponse) {
-        $returnAddress  = [];   
-        $drAddress      = null;        
-        
-        if(!empty($type) && !empty($drResponse['cart'])) {         
-            if($type == 'billing') {
-                $drAddress = isset($drResponse['cart']['billingAddress']) ? $drResponse['cart']['billingAddress'] : null;
-            } else if($type == 'shipping') {
-                $drAddress = isset($drResponse['cart']['shippingAddress']) ? $drResponse['cart']['shippingAddress'] : null;
-            } else {
-                $this->_logger->error('Address Type missing');
-                return $returnAddress;
-            } // end: if 
-        } // end: if
+        $returnAddress  = [];
+        $drAddress      = null;
+        try {
+            if(!empty($type) && !empty($drResponse['cart'])) {
+                if($type == 'billing') {
+                    $drAddress = isset($drResponse['cart']['billingAddress']) ? $drResponse['cart']['billingAddress'] : null;
+                } else if($type == 'shipping') {
+                    $drAddress = isset($drResponse['cart']['shippingAddress']) ? $drResponse['cart']['shippingAddress'] : null;
+                } else {
+                    $this->_logger->error('Address Type missing');
+                    return $returnAddress;
+                } // end: if 
+            } // end: if
 
-        if(!empty($drAddress) && is_array($drAddress)) {            
-            $addressFields = ['firstName', 'line1', 'city', 'countrySubdivision', 'postalCode', 'country', 'phoneNumber'];
-            
-            if(count(array_diff($addressFields, array_keys($drAddress))) == 0) {
-                // Get Region details
-                $region = $this->regionModel->loadByCode($drAddress['countrySubdivision'], $drAddress['country'])->getData();
+            if(!empty($drAddress) && is_array($drAddress)) {
+                $addressFields = ['firstName', 'line1', 'city', 'countrySubdivision', 'postalCode', 'country', 'phoneNumber'];
 
-                $street = $drAddress['line1'];
-                $street .= (!empty($drAddress['line2'])) ? (' '.$drAddress['line2']) : null;
-                $street .= (!empty($drAddress['line3'])) ? (' '.$drAddress['line3']) : null;
+                if(count(array_diff($addressFields, array_keys($drAddress))) == 0) {
+                    // Get Region details
+                    $region = $this->regionModel->loadByCode($drAddress['countrySubdivision'], $drAddress['country'])->getData();
 
-                $street = trim($street);
-                $phone  = str_replace('-', '', $drAddress['phoneNumber']);
+                    $street = $drAddress['line1'];
+                    $street .= (!empty($drAddress['line2'])) ? (' '.$drAddress['line2']) : null;
+                    $street .= (!empty($drAddress['line3'])) ? (' '.$drAddress['line3']) : null;
 
-                $returnAddress = [
-                    'firstname'     => (!empty($drAddress['firstName'])) ? trim($drAddress['firstName']) : null,
-                    'lastname'      => (!empty($drAddress['lastName'])) ? trim($drAddress['lastName']) : null,
-                    'street'        => $street,
-                    'city'          => $drAddress['city'],
-                    'postcode'      => $drAddress['postalCode'],
-                    'country_id'    => $drAddress['country'],
-                    'region'        => !empty($region['name']) ? $region['name'] : null,
-                    'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
-                    'telephone'     => $phone
-                ];
-            } else {
-                $this->_logger->error('Mandatory Address Details missing');
-            }// end: if
-        } // end: if
-        
+                    $street = trim($street);
+                    $phone  = str_replace('-', '', $drAddress['phoneNumber']);
+
+                    $returnAddress = [
+                        'firstname'     => (!empty($drAddress['firstName'])) ? trim($drAddress['firstName']) : null,
+                        'lastname'      => (!empty($drAddress['lastName'])) ? trim($drAddress['lastName']) : null,
+                        'street'        => $street,
+                        'city'          => $drAddress['city'],
+                        'postcode'      => $drAddress['postalCode'],
+                        'country_id'    => $drAddress['country'],
+                        'region'        => !empty($region['name']) ? $region['name'] : null,
+                        'region_id'     => !empty($region['region_id']) ? $region['region_id'] : null,
+                        'telephone'     => $phone
+                    ];
+                } else {
+                    $this->_logger->error('Mandatory Address Details missing');
+                }// end: if
+            } // end: if
+        } catch (Exception $ex) {
+            $this->_logger->error('Issue in Payment Address');
+        } // end: try
         return $returnAddress;
     } // end: function getDRApplyPaymentAddress 
       
@@ -1510,30 +1512,37 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $productTotal       = 0;
         $productTotalExcl   = 0;
         
-        $tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        
-		if(isset($drResult["cart"]['lineItems']) && isset($drResult["cart"]['lineItems']['lineItem'])) {
-            $this->_logger->error('Issue in Totals Calculation 1 !');
+	if(!isset($drResult['cart']['lineItems']) || !isset($drResult['cart']['lineItems']['lineItem'])) {
+            $this->_logger->error('Issue in Totals Calculation !');
             return false;
         } // end: if
         
         try {
-            if ($quote->getIsVirtual()) {               
-				if(isset($drResult["cart"]['lineItems']) && isset($drResult["cart"]['lineItems']['lineItem'])) {	
+            if ($quote->getIsVirtual()) {
+                $tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+		if(!empty($drResult['cart']['lineItems']['lineItem']) && is_array($drResult['cart']['lineItems']['lineItem'])) {	
                     foreach($drResult['cart']['lineItems']['lineItem'] as $item) {
                         $productTax     += $item['pricing']['productTax']['value'];
                         $qty            = $item['quantity'];
+                        if(!empty($item['customAttributes']) && !empty($item['customAttributes']['attribute']) && is_array($item['customAttributes']['attribute'])) {
+                            foreach($item['customAttributes']['attribute'] as $customAttribute){
+                                if($customAttribute['name'] == 'originalProductPrice') {
+                                    $productTotal += $customAttribute['value'] * $qty;
 
-                        foreach($item['customAttributes']['attribute'] as $customAttribute){
-                            if($customAttribute['name'] == 'originalProductPrice') {
-                                $productTotal += $customAttribute['value'] * $qty;
-                                
-                                if($tax_inclusive) {
-                                    $productTotalExcl += ($customAttribute['value'] / (1 + $item['pricing']['taxRate'])) * $qty;
+                                    if($tax_inclusive) {
+                                        $productTotalExcl += ($customAttribute['value'] / (1 + $item['pricing']['taxRate'])) * $qty;
+                                    } // end: if
                                 } // end: if
-                            } // end: if
-                        } // end: foreach
+                            } // end: foreach
+                        } else {
+                            $this->_logger->error('Invalid DR items response !');
+                            return false;
+                        } // end: if                        
                     } // end: foreach
+                } else {
+                    $this->_logger->error('Invalid DR items response !');
+                    return false;
                 } // end: if
                 
                 if(!$tax_inclusive) {
