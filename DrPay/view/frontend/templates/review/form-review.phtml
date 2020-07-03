@@ -5,7 +5,7 @@
  */
 
 /**
- * @var \Magento\Paypal\Block\Express\Review $block
+ * @var \Digitalriver\DrPay\Block\Checkout\Review $block
  */
 
 $quote = $block->getQuote();
@@ -211,7 +211,7 @@ $quote = $block->getQuote();
                                     <span><?php echo $block->escapeHtml(__('Shipping Method:')); ?></span>
                                 </div>
                                 <div class="shipping-information-content">
-                                    <span class="value"><p><?= /* @noEscape */ $block->renderShippingRateOption($block->getCurrentShippingRate()); ?></p></span>
+                                    <span class="value"><p><?= $block->escapeHtml($quote->getShippingAddress()->getShippingDescription()); ?></p></span>
                                 </div>
                             </div>
                         </div>
