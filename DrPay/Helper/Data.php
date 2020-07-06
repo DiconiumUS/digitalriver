@@ -1104,6 +1104,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $dr_auth_pass = $this->scopeConfig->getValue('dr_settings/config/dr_refund_auth_password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storecode);
         return $this->_enc->decrypt($dr_auth_pass);
     }
+	public function getConfig($config_path)
+	{
+		return $this->scopeConfig->getValue($config_path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+	}
 
     /**
      * @return mixed|null

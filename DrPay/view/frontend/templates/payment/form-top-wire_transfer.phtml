@@ -1,37 +1,11 @@
 <script type="text/javascript">
-function loadScriptWire(url, callback){
-    var script = document.createElement("script")
-    script.type = "text/javascript";
-
-    if (script.readyState){  //IE
-        script.onreadystatechange = function(){
-            if (script.readyState == "loaded" ||
-                    script.readyState == "complete"){
-                script.onreadystatechange = null;
-                callback();
-            }
-        };
-    } else {  //Others
-        script.onload = function(){
-            callback();
-        };
-    }
-
-    script.src = url;
-    document.getElementsByTagName("head")[0].appendChild(script);
-}
-
-</script>
-<script type="text/javascript">
 	function drWireLoader(){
-		var jsUrl = window.checkoutConfig.payment.drpay_wire_transfer.js_url;
-		var publicKey = window.checkoutConfig.payment.drpay_wire_transfer.public_key;
-		if(jsUrl && publicKey){ //If url and key set in admin
-			loadScriptWire(jsUrl, function(){
+		if(typeof digitalriverjs != "undefined"){ //If url and key set in admin
+			//loadScriptWire(jsUrl, function(){
 			// var script = document.createElement("script"); //Dynamically append the drWirejs
 			// script.onload = function () {
 		    //After append js set Your API Key and Start DigitalRiver.js
-		    var drWirejs = new DigitalRiver(publicKey);
+		    var drWirejs = digitalriverjs;
 			// Create a token or display an error when the form is submitted.
 			var paymentForm = document.getElementById('drpay-wire-transfer-btn');
 				paymentForm.addEventListener('click', function(event) {
@@ -60,7 +34,7 @@ function loadScriptWire(url, callback){
 					},
 				});	
 			});			    
-		});
+		//});
 		// script.src = jsUrl;
 		// document.getElementsByTagName('head')[0].appendChild(script);
 		}

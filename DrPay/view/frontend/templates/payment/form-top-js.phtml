@@ -1,0 +1,8 @@
+<?php
+$js_url = $this->helper('\Digitalriver\DrPay\Helper\Data')->getConfig('dr_settings/config/url');
+$key = $this->helper('\Digitalriver\DrPay\Helper\Data')->getConfig('dr_settings/config/public_key');
+?>
+<script type="text/javascript" src="<?php echo $js_url ?>"></script>
+<script type="text/javascript">
+	var digitalriverjs = new DigitalRiver("<?php echo $key ?>");
+</script>

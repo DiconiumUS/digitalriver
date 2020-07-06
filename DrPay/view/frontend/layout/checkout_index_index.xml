@@ -5,6 +5,7 @@
     </head>
     <body>
         <referenceContainer name="content">
+            <block ifconfig="dr_settings/config/active" class="Magento\Framework\View\Element\Template" name="drpay_js" before="checkout.root"  cacheable="false" template="Digitalriver_DrPay::payment/form-top-js.phtml"/>
             <block ifconfig="payment/drpay_creditcard/active" class="Magento\Framework\View\Element\Template" name="dr_creditcard_form_top" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::payment/form-top-creditcard.phtml"/>
             <block ifconfig="payment/drpay_paypal/active" class="Magento\Framework\View\Element\Template" name="dr_paypal_form_top" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::payment/form-top-paypal.phtml"/> 
             <block ifconfig="payment/drpay_direct_debit/active" class="Magento\Framework\View\Element\Template" name="dr_direct_debit_form_top" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::payment/form-top-direct_debit.phtml"/> 
