@@ -223,11 +223,22 @@ $quote = $block->getQuote();
         <div data-role="focusable-end" tabindex="0"></div>
     </aside>
 </div>
-
+<style type="text/css">
+    .opc-block-summary .items-in-cart.active>.title:after,
+    .minicart-items .product .toggle.active:after {
+        content: '\e621';
+    }
+</style>
 <script type="text/javascript">
 function toggleContent(targetElement) {
-    require(["jquery"], function ($) { 
+    require(["jquery"], function ($) {
         $('.content.view-details').hide(); 
+
+        if($(targetElement).is(':visible'))
+            $('.opc-block-summary .items-in-cart').removeClass('active');
+        else
+            $('.opc-block-summary .items-in-cart').addClass('active');
+
         $(targetElement).toggle(); 
     });
 }
@@ -236,8 +247,10 @@ function toggleOptions(targetElement) {
     require(["jquery"], function ($) { 
         if ($(targetElement).find('.content.view-details').is(':visible')) {
             $(targetElement).find('.content.view-details').hide();
+            $('.minicart-items .product .toggle').removeClass('active');
         } else {
             $('.content.view-details').hide();
+            $('.minicart-items .product .toggle').addClass('active');            
             $(targetElement).find('.content.view-details').show();
         };
     });
