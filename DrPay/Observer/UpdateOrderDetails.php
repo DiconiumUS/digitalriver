@@ -120,6 +120,11 @@ class UpdateOrderDetails implements ObserverInterface
 					}
 				}
 			}
+			// required for MOM
+			$shippingTax = $this->session->getDrShippingTax();
+			($shippingTax > 0) OR $shippingTax = 0;
+			$order->setShippingTaxAmount($this->priceCurrency->round($shippingTax));
+			$order->setBaseShippingTaxAmount($this->priceCurrency->round(($this->convertToBaseCurrency($shippingTax))));
 			if($tax_inclusive){
 				$order->setSubtotal($this->priceCurrency->round($subtotal));
 				$order->setBaseSubtotal($this->priceCurrency->round(($this->convertToBaseCurrency($subtotal))));
