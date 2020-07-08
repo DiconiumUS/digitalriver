@@ -13,7 +13,7 @@ $quote = $block->getQuote();
 <div id="checkout" data-bind="scope:'checkout'" class="checkout-container">
     <ul class="opc-progress-bar">
         <li class="opc-progress-bar-item _active">
-            <span>Review</span>
+            <span><?= $block->escapeHtml(__('Review')); ?></span>
         </li>
     </ul>
 
