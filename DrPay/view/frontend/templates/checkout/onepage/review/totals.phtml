@@ -11,6 +11,7 @@
 <?php if ($block->getTotals()) : ?>
     <?php $_colspan = 1; ?>
     <?= /* @noEscape */ $block->renderTotals(null, $_colspan) ?>
+    <?= /* @noEscape */ $block->renderTotals('taxes', $_colspan) ?>
     <?= /* @noEscape */ $block->renderTotals('footer', $_colspan) ?>
     <?php if ($block->needDisplayBaseGrandtotal()) : ?>
     <tr class="totals charge">

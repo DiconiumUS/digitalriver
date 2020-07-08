@@ -57,9 +57,9 @@ class Index extends AbstractAction implements HttpPostActionInterface, HttpGetAc
                 throw new LocalizedException(__('Checkout failed to initialize. Verify and try again.'));
             } // end: if
             
+            $paymentResult  = $this->helper->applyQuotePayment($requestData, true);
+            
             if(!empty($paymentMethod) && $paymentMethod === \Digitalriver\DrPay\Model\PayPal::PAYMENT_METHOD_PAYPAL_CODE) {
-                $paymentResult  = $this->helper->applyQuotePayment($requestData, true);
-                
                 if (empty($paymentResult) || isset($paymentResult['errors']) || empty($paymentResult['cart']) || empty($paymentResult['cart']['billingAddress'])) {
                     throw new LocalizedException(__('Invalid Payment Details'));
                 } // end: if

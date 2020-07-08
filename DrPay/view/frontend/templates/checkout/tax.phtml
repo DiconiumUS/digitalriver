@@ -1,0 +1,49 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// phpcs:disable Magento2.Templates.ThisInTemplate
+
+/**
+ * @var $block \Digitalriver\DrPay\Block\Checkout\Tax
+ * @see \Magento\Tax\Block\Checkout\Tax
+ */
+?>
+<?php
+    $_value = $block->getTotal()->getValue();
+    $_style = $block->escapeHtmlAttr($block->getTotal()->getStyle());
+
+    $attributes = 'class="totals-tax"';
+
+if ($this->helper(\Magento\Tax\Helper\Data::class)->displayFullSummary() && $_value != 0) {
+    $attributes = 'class="totals-tax-summary"';
+}
+?>
+
+<tr <?= /* @noEscape */ $attributes ?>>
+    <th style="<?= /* @noEscape */ $_style ?>" class="mark" colspan="<?= (int) $block->getColspan() ?>" scope="row">
+        <?php if ($this->helper(\Magento\Tax\Helper\Data::class)->displayFullSummary()) : ?>
+            <span class="detailed"><?= $block->escapeHtml($block->getTotal()->getTitle()) ?></span>
+        <?php else : ?>
+            <?= $block->escapeHtml($block->getTotal()->getTitle()) ?>
+        <?php endif; ?>
+    </th>
+    <td style="<?= /* @noEscape */ $_style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getTotal()->getTitle()) ?>">
+        <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($_value) ?>
+    </td>
+</tr>
+
+<style type="text/css">
+    .opc-block-summary .table-totals .totals-tax-summary .mark, 
+    .opc-block-summary .table-totals .totals-tax-summary .amount {
+        border-top: none;        
+    }
+    .opc-block-summary .table-totals .totals-tax-summary .amount .price {
+        padding-right:0;
+    }
+    .opc-block-summary .table-totals .totals-tax-summary .amount .price:after {
+        content: '';
+    }
+</style>

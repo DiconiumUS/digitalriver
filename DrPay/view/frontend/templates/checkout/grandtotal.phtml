@@ -1,0 +1,43 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// phpcs:disable Magento2.Templates.ThisInTemplate
+
+/**
+ * @var $block \Digitalriver\DrPay\Block\Checkout\Grandtotal
+ */
+?>
+<?php
+$style = $block->escapeHtmlAttr($block->getStyle());
+$colspan = (int) $block->getColspan();
+?>
+<?php if ($block->includeTax() && $block->getTotalExclTax() >= 0) : ?>
+    <tr class="grand totals incl drpay">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <strong><?= $block->escapeHtml(__('Order Total Incl. Tax')) ?></strong>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Order Total Incl. Tax')) ?>">
+            <strong><?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getTotal()->getValue()) ?></strong>
+        </td>
+    </tr>
+    <tr class="grand totals excl">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <?= $block->escapeHtml(__('Order Total Excl. Tax')) ?>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Order Total Excl. Tax')) ?>">
+            <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getTotalExclTax()) ?>
+        </td>
+    </tr>    
+<?php else : ?>
+    <tr class="grand totals">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <strong><?= $block->escapeHtml($block->getTotal()->getTitle()) ?></strong>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getTotal()->getTitle()) ?>">
+            <strong><?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getTotal()->getValue()) ?></strong>
+        </td>
+    </tr>
+<?php endif; ?>

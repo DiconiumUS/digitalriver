@@ -33,3 +33,20 @@ Card Name:,Název karty:
 There is an issue with Refund at DR side,Vrácení peněz selhalo na Digital River
 Error! Please check your address and try again.,Chyba! Prosím zkontrolujte svoji adresu. Zkusit znovu.
 Failed to get Source! Please try again.,Nepodařilo se načíst Source. Zkusit znovu.
+"Cart Subtotal Excl. Tax","Cart Subtotal Excl. Tax"
+"Cart Subtotal Incl. Tax","Cart Subtotal Incl. Tax"
+"Shipping Excl. Tax","Shipping Excl. Tax"
+"Shipping Incl. Tax","Shipping Incl. Tax"
+"Order Total Incl. Tax","Order Total Incl. Tax"
+"Order Total Excl. Tax","Order Total Excl. Tax"
+"Order Total","Order Total"
+"Excl. Tax","Excl. Tax"
+"Incl. Tax","Incl. Tax"
+"Discount (%1)","Discount (%1)"
+"Order Summary","Order Summary"
+"You will be charged for","You will be charged for"
+"Item in Cart","Item in Cart"
+"Items in Cart","Items in Cart"
+"Ship To:","Ship To:"
+"Shipping Method:","Shipping Method:"
+"View Details","View Details"
