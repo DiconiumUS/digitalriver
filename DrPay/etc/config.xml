@@ -11,7 +11,6 @@
         <payment>
             <drpay_creditcard>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\CreditCard</model>
                 <order_status>pending_payment</order_status>
@@ -21,7 +20,6 @@
             </drpay_creditcard>
             <drpay_paypal>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\PayPal</model>
                 <order_status>pending_payment</order_status>
@@ -31,7 +29,6 @@
             </drpay_paypal> 
             <drpay_direct_debit>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\DirectDebit</model>
                 <order_status>pending_payment</order_status>
@@ -41,7 +38,6 @@
             </drpay_direct_debit>
             <drpay_apple_pay>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\ApplePay</model>
                 <order_status>pending_payment</order_status>
@@ -51,7 +47,6 @@
             </drpay_apple_pay>
             <drpay_wire_transfer>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\WireTransfer</model>
                 <order_status>pending_payment</order_status>
@@ -61,7 +56,6 @@
             </drpay_wire_transfer>
             <drpay_klarna>
                 <active>0</active>
-                <url>https://js.digitalriverws.com/v1/DigitalRiver.js</url>
                 <sort_order>1</sort_order>
                 <model>Digitalriver\DrPay\Model\Klarna</model>
                 <order_status>pending_payment</order_status>

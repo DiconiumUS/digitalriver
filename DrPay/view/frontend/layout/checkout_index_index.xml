@@ -4,6 +4,11 @@
         <script src="Digitalriver_DrPay::js/view/privacy/terms.js"/>
     </head>
     <body>
+		<referenceBlock name="require.js">
+			<action method="setTemplate" ifconfig="dr_settings/config/active" >
+				<argument name="template" xsi:type="string">Digitalriver_DrPay::payment/form-top-js.phtml</argument>
+			</action>
+		</referenceBlock> 
         <referenceContainer name="content">
             <block ifconfig="payment/drpay_creditcard/active" class="Magento\Framework\View\Element\Template" name="dr_creditcard_form_top" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::payment/form-top-creditcard.phtml"/>
             <block ifconfig="payment/drpay_paypal/active" class="Magento\Framework\View\Element\Template" name="dr_paypal_form_top" before="checkout.root" cacheable="false" template="Digitalriver_DrPay::payment/form-top-paypal.phtml"/> 

@@ -1,35 +1,11 @@
-<script type="text/javascript">
-function loadScriptCard(url, callback){
-    var script = document.createElement("script")
-    script.type = "text/javascript";
-
-    if (script.readyState){  //IE
-        script.onreadystatechange = function(){
-            if (script.readyState == "loaded" ||
-                    script.readyState == "complete"){
-                script.onreadystatechange = null;
-                callback();
-            }
-        };
-    } else {  //Others
-        script.onload = function(){
-            callback();
-        };
-    }
-
-    script.src = url;
-    document.getElementsByTagName("head")[0].appendChild(script);
-}
-
-</script>
+<?php $key = $this->helper('\Digitalriver\DrPay\Helper\Data')->getConfig('dr_settings/config/public_key');?>
 <script type="text/javascript">
 	function drCreditCardLoader(){	
-		var jsUrl = window.checkoutConfig.payment.drpay_creditcard.js_url;
-		var publicKey = window.checkoutConfig.payment.drpay_creditcard.public_key;
-		if(jsUrl && publicKey){ //If url and key set in admin
-			loadScriptCard(jsUrl, function(){
+		var digitalriverjs = new DigitalRiver("<?php echo $key?>");
+		if(typeof digitalriverjs != "undefined"){ //If url and key set in admin
+			//loadScriptCard(jsUrl, function(){
 		    //After append js set Your API Key and Start DigitalRiver.js
-		    var drcreditcardjs = new DigitalRiver(publicKey);
+		    var drcreditcardjs = digitalriverjs;
 			
 			//Create your Card Number element
 			var options = getDrCreditCardOptions('cardnumber');
@@ -86,7 +62,7 @@ function loadScriptCard(url, callback){
 					getCreditCardSourceId(drcreditcardjs, cardNumber);
 				}
 			});	    
-		});
+			//});
 		}
 	}
 	function getCreditCardSourceId(drcreditcardjs, cardNumber){
