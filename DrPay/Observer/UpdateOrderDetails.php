@@ -60,17 +60,12 @@ class UpdateOrderDetails implements ObserverInterface
 		$quote = $observer->getEvent()->getQuote();
 		$result = $observer->getEvent()->getResult();
 		$cartresult = $observer->getEvent()->getCartResult();
-		//print_r($result);die;
 		if(isset($result["submitCart"]["order"]["id"])){
 			$orderId = $result["submitCart"]["order"]["id"];
 			$order->setDrOrderId($orderId);
 			$amount = $this->session->getDrTax();
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-//			if($tax_inclusive){
-//				if(isset($result["submitCart"]["pricing"]["tax"]["value"])){
-//					$amount = $result["submitCart"]["pricing"]["tax"]["value"];
-//				}
-//			}
+
 			$order->setDrTax($amount);
 			$order->setTaxAmount($amount);
 			$order->setBaseTaxAmount($this->convertToBaseCurrency($amount));
@@ -95,21 +90,31 @@ class UpdateOrderDetails implements ObserverInterface
 					$magentoItemId = $orderitem->getQuoteItemId();			
 					
 					foreach($lineItems as $item){						
-						// loop thru the item's custom attributes to extract the magento_quote_item_id and the originalProductPrice
+						// loop thru the item's custom attributes to extract the magento_quote_item_id, productPriceExclTax, productPriceSubTotalInclTax, productPriceSubTotalExclTax
 						$customAttributes = $item["customAttributes"]["attribute"];
 						
 						$drItemMagentoRefId = '';
-						$originalProductPrice = 0;
+						$productPriceSubTotalInclTax = 0;
+						$productPriceSubTotalExclTax = 0;
+						$productPriceExclTax = 0;
 
 						foreach($customAttributes as $customAttribute) {
 							if($customAttribute["name"] == "magento_quote_item_id") {
 								$drItemMagentoRefId = $customAttribute["value"];
 							}
-							if($customAttribute["name"] == "originalProductPrice") {
-								$originalProductPrice = $customAttribute["value"];
+							if($customAttribute["name"] == "productPriceSubTotalInclTax") {
+								$productPriceSubTotalInclTax = $customAttribute["value"];
+							}
+							if($customAttribute["name"] == "productPriceSubTotalExclTax") {
+								$productPriceSubTotalExclTax = $customAttribute["value"];
+							}
+							if($customAttribute["name"] == "productPriceExclTax") {
+								$productPriceExclTax = $customAttribute["value"];
 							}
 						}
-						$item['originalProductPrice'] = $originalProductPrice;
+						$item['productPriceExclTax'] = $productPriceExclTax;
+						$item['productPriceSubTotalInclTax'] = $productPriceSubTotalInclTax;
+						$item['productPriceSubTotalExclTax'] = $productPriceSubTotalExclTax;
 
 						// if the DR cart's magento_quote_item_id == magentoItemId, then update the Items details
 						if($drItemMagentoRefId == $magentoItemId){
@@ -128,6 +133,11 @@ class UpdateOrderDetails implements ObserverInterface
 			if($tax_inclusive){
 				$order->setSubtotal($this->priceCurrency->round($subtotal));
 				$order->setBaseSubtotal($this->priceCurrency->round(($this->convertToBaseCurrency($subtotal))));
+				$order->setBaseShippingAmount($this->priceCurrency->round(($this->convertToBaseCurrency($order->getShippingAmount()))));
+			}
+			else {
+				$order->setSubtotalInclTax($this->priceCurrency->round($order->getSubtotal() + $this->session->getDrProductTax()));
+				$order->setBaseSubtotalInclTax($this->priceCurrency->round(($this->convertToBaseCurrency($subtotal))));
 				$order->setBaseShippingAmount($this->priceCurrency->round(($this->convertToBaseCurrency($order->getShippingAmount()))));
 			}
 			$order->save();
@@ -156,32 +166,24 @@ class UpdateOrderDetails implements ObserverInterface
 		$listprice = $item["pricing"];
 		if(isset($listprice["productTax"]['value'])){
 			$total_tax_amount = $listprice["productTax"]['value'];
-			$tax_amount = $total_tax_amount/$qty;
+			
 			$orderitem->setTaxAmount($this->priceCurrency->round($total_tax_amount));
 			$orderitem->setBaseTaxAmount($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getTaxAmount())));
 			if(isset($listprice["taxRate"])){
 				$orderitem->setTaxPercent($listprice["taxRate"] * 100);
 			}
 			if($tax_inclusive){
-				$discountAmount = $orderitem->getDiscountAmount();
-				($discountAmount) OR $discountAmount = 0;
-				$salePrice = $item['originalProductPrice'];
-				if(isset($listprice["taxRate"]) && $listprice["taxRate"] > 0) {
-					$salePrice = $item['originalProductPrice'] / (1 + $listprice["taxRate"]);
-				}
-				$orderitem->setDiscountTaxCompensationAmount(0);
-				$orderitem->setBaseDiscountTaxCompensationAmount(0);
-				$orderitem->setPrice($salePrice);
+				// compensation is requried to adjust the Row Total column in the order details lineitems. This does not impact the GC order.
+				//$orderitem->setDiscountTaxCompensationAmount(0); 
+				//$orderitem->setBaseDiscountTaxCompensationAmount(0);
+				
+				$orderitem->setPrice($item['productPriceExclTax']);
 				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
-				$salePriceWithQuantity = $listprice["salePriceWithQuantity"]['value'] - $total_tax_amount + $discountAmount;
-				$orderitem->setRowTotal($this->priceCurrency->round($salePriceWithQuantity));
+
+				$orderitem->setRowTotal($this->priceCurrency->round($item['productPriceSubTotalExclTax']));
 				$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
-				$orderitem->setRowTotalInclTax($this->priceCurrency->round($listprice["salePriceWithQuantity"]['value'] + $discountAmount));
-				$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));
-			}else{
-				$orderitem->setPriceInclTax($orderitem->getPrice() + $tax_amount);
-				$orderitem->setBasePriceInclTax($this->convertToBaseCurrency($orderitem->getPriceInclTax()));
-				$orderitem->setRowTotalInclTax($this->priceCurrency->round($orderitem->getRowTotal() + $total_tax_amount));
+				
+				$orderitem->setRowTotalInclTax($this->priceCurrency->round($item['productPriceSubTotalInclTax']));
 				$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));
 			}
 		}
