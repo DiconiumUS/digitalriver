@@ -35,9 +35,9 @@ $colspan = (int) $block->getColspan();
 <?php else : ?>
 <tr class="totals sub">
     <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
-        <?= $block->escapeHtml($block->getTotal()->getTitle()) ?>
+        <?= $block->escapeHtml(__('Cart Subtotal')) ?>
     </th>
-    <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getTotal()->getTitle()) ?>">
+    <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Cart Subtotal')) ?>">
         <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getTotal()->getValue()) ?>
     </td>
 </tr>

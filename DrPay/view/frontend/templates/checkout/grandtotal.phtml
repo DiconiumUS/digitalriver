@@ -34,9 +34,9 @@ $colspan = (int) $block->getColspan();
 <?php else : ?>
     <tr class="grand totals">
         <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
-            <strong><?= $block->escapeHtml($block->getTotal()->getTitle()) ?></strong>
+            <strong><?= $block->escapeHtml(__('Order Total')) ?></strong>
         </th>
-        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getTotal()->getTitle()) ?>">
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Order Total')) ?>">
             <strong><?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getTotal()->getValue()) ?></strong>
         </td>
     </tr>
