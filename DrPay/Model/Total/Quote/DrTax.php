@@ -69,7 +69,7 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 				//$total->setBaseShippingTaxAmount($this->convertToBaseCurrency($shippingTax));
 			} else {
 				$shippingAndHandling = $this->_checkoutSession->getDrShippingAndHandling();
-				$total->setSubtotalInclTax($productTotal);
+				//$total->setSubtotalInclTax($productTotal);
 				$total->setSubtotal($productTotalExcl);
 				$total->setShippingInclTax($shippingAndHandling);
 				$total->setShippingAmount($shippingAndHandlingExcl);
@@ -79,8 +79,8 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 				$total->setGrandTotal($orderTotal);
 			}
 			
-			//$total->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
-			//$total->setGrandTotal($orderTotal);
+			$total->setBaseGrandTotal($this->convertToBaseCurrency($orderTotal));
+			$total->setGrandTotal($orderTotal);
 
 			//$quote->setDrTax($drtax);
 			//$total->setDrTax($drtax);
