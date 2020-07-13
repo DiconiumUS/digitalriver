@@ -300,7 +300,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $price = $item->getRowTotal();
 
 					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceSubTotalExclTax', 'value' => $price];
-					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceExclTax', 'value' => $item->getPrice()];
+					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceExclTax', 'value' => $item->getCalculationPrice()];
 					
 					$productTotalExcl += $price;
 					if($tax_inclusive) {
@@ -510,6 +510,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$shippingAmountExcl = $originalShippingAmount;
 					$shippingAmount = $shippingAmountExcl + $shippingTax;
 					$this->session->setDrShippingAndHandling($shippingAmount);	
+					$productTotal += $productTax;
 				}
 				
 				$this->session->setDrProductTotal($productTotal);
