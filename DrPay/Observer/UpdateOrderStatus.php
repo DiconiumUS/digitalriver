@@ -58,7 +58,7 @@ class UpdateOrderStatus implements ObserverInterface
             if($order->getDrOrderState() == "Submitted"){ 
                 $order->setState(Order::STATE_PROCESSING); 
                 $order->setStatus(Order::STATE_PROCESSING);
-            }else if($order->getDrOrderState() == "Source Pending Funds"){ 
+            }else if($order->getDrOrderState() == "Source Pending Funds" || $order->getDrOrderState() == "Charge Pending"){ 
                 $order->setState(Order::STATE_PENDING_PAYMENT); 
                 $order->setStatus(Order::STATE_PENDING_PAYMENT);
             }else{ 
