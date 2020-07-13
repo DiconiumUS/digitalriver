@@ -914,18 +914,38 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $url = $this->getDrRefundUrl($storeCode)."orders/".$order->getDrOrderId()."/refunds";
             $token = $this->generateRefundToken($storeCode);
             if ($token) {
-				$grandTotal = round($creditmemo->getGrandTotal(), 2);
-				$shippingAmount = round($creditmemo->getShippingInclTax(), 2);
-				if($shippingAmount > 0){
-					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_SHIPPING", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $shippingAmount]];
+				$adjustmentRefund = $creditmemo->getAdjustmentPositive();
+				$currencyCode = $order->getOrderCurrencyCode();
+				if($adjustmentRefund > 0){
+					$adjustmentRefund = round($adjustmentRefund, 2);
+					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $currencyCode, "value" => $adjustmentRefund]];
 					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
-					if(!$response) return $response;
-					$grandTotal = $grandTotal - $shippingAmount;
-				}
-				if($grandTotal > 0){
-					$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $order->getOrderCurrencyCode(), "value" => $grandTotal]];
-					$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
-					if(!$response) return $response;
+					if(!$response) return $response;				
+				}else{
+					$items = $creditmemo->getAllItems();
+					$itemDiscount = 0;
+					$itemsData = array();
+					foreach($items as $item){echo $item->getRowTotalInclTax();
+						$rowTotalInclTax = $item->getRowTotalInclTax() - $item->getDiscountAmount();
+						$itemDiscount += $item->getDiscountAmount();
+						if($rowTotalInclTax > 0){
+							$rowTotalInclTax = round($rowTotalInclTax, 2);
+							$drLineItemId = $item->getOrderItem()->getDrOrderLineitemId();
+							$itemsData[] = ["lineItemId" => $drLineItemId, "refundAmount" => ["value" => $rowTotalInclTax, "currency" => $currencyCode]];
+						}						
+					}print_r($itemsData);die;
+					if(count($itemsData) > 0){
+						$data = ["type" => "productRefund", "category" => "PRODUCT_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "lineItems" => $itemsData];
+						$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+						if(!$response) return $response;
+					}
+					$shippingDiscount = abs($creditmemo->getDiscountAmount()) - $itemDiscount;
+					if($creditmemo->getShippingInclTax() > 0){
+						$shippingAmount = round($creditmemo->getShippingInclTax() - $shippingDiscount, 2);
+						$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_SHIPPING", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $currencyCode, "value" => $shippingAmount]];
+						$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
+						if(!$response) return $response;
+					}
 				}
 				$flag = true;
                 return $flag;
