@@ -510,6 +510,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$shippingAmountExcl = $originalShippingAmount;
 					$shippingAmount = $shippingAmountExcl + $shippingTax;
 					$this->session->setDrShippingAndHandling($shippingAmount);	
+					$productTotal += $productTax;
 				}
 				
 				$this->session->setDrProductTotal($productTotal);
