@@ -926,15 +926,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$items = $creditmemo->getAllItems();
 					$itemDiscount = 0;
 					$itemsData = array();
-					foreach($items as $item){echo $item->getRowTotalInclTax();
-						$rowTotalInclTax = $item->getRowTotalInclTax() - $item->getDiscountAmount();
+					foreach($items as $item){
+						$rowTotalInclTax = $item->getRowTotal() + $item->getTaxAmount() + $item->getDiscountTaxCompensationAmount() - $item->getDiscountAmount();
 						$itemDiscount += $item->getDiscountAmount();
 						if($rowTotalInclTax > 0){
 							$rowTotalInclTax = round($rowTotalInclTax, 2);
 							$drLineItemId = $item->getOrderItem()->getDrOrderLineitemId();
 							$itemsData[] = ["lineItemId" => $drLineItemId, "refundAmount" => ["value" => $rowTotalInclTax, "currency" => $currencyCode]];
-						}						
-					}print_r($itemsData);die;
+						}				
+					}
 					if(count($itemsData) > 0){
 						$data = ["type" => "productRefund", "category" => "PRODUCT_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "lineItems" => $itemsData];
 						$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
