@@ -276,11 +276,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $data["cart"]["customAttributes"]["attribute"][] = $taxInclusiveOverride;
                 $lineItems = [];
 
-                $currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
-                $productDiscountTotal = 0;
-                $productTotalExcl = 0;
-                $productTotal = 0;
-                foreach ($quote->getAllItems() as $item) {					
+				$currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+				$productDiscountTotal = 0;
+				$productTotalExcl = 0;
+				$productTotal = 0;
+                foreach ($quote->getAllItems() as $item) {		
 					if($item->getProductType() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE || $item->getProductType() == \Magento\Bundle\Model\Product\Type::TYPE_CODE){
 						continue;
 					}
@@ -299,9 +299,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$sku = $item->getSku();
                     $price = $item->getRowTotal();
 
-                                        $lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceSubTotalExclTax', 'value' => $price];
-					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceExclTax', 'value' => $item->getPrice()];
-
+					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceSubTotalExclTax', 'value' => $price];
+					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productPriceExclTax', 'value' => $item->getCalculationPrice()];
+					
 					$productTotalExcl += $price;
 					if($tax_inclusive) {
 						$price = $item->getRowTotalInclTax();
@@ -311,20 +311,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
 					$productTotal += $price;
 					
-                    if ($item->getDiscountAmount() > 0) {
+                    if ($item->getDiscountAmount() > 0) {						
                         $price = $price - $item->getDiscountAmount();
 						$productDiscountTotal += $item->getDiscountAmount();
                     }
 
 					$lineItem["customAttributes"]["attribute"][] = ['name' => 'productDiscount', 'value' => $item->getDiscountAmount()];
+
                     if ($price <= 0) {
                         $price = 0;
                     }
 					
-                    					$lineItem["product"] = ['id' => $sku];
+					$lineItem["product"] = ['id' => $sku];
 
                     $lineItem["pricing"]["itemPrice"] = ['currency' => $currency, 'value' => round($price, 2)];                    
-
+					
 					if($item->getParentItemId()){
 						$parentExternalReferenceId = ["name" => "parentExternalReferenceId", "value" => $item->getParentItem()->getSku()];
 						$lineItem["customAttributes"]["attribute"][] = $parentExternalReferenceId;
@@ -485,16 +486,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				
 				$shippingTax = 0;
 				$productTax = 0;
-
+				
 				if(isset($result["cart"]['lineItems']) && isset($result["cart"]['lineItems']['lineItem'])) {					
 					$lineItems = $result["cart"]['lineItems']['lineItem'];
 					foreach($lineItems as $item){
 						$productTax += $item['pricing']['productTax']['value'];
-						$shippingTax += $item['pricing']['shippingTax']['value'];
+						$shippingTax += $item['pricing']['shippingTax']['value'];						
 					}
 				}
 
-				if($tax_inclusive) {
+				if($tax_inclusive) {					
 					// Acceptable hack - this is display only
 					$shippingDiff = $result["cart"]['pricing']['shippingAndHandling']['value'] - $shippingTax;
 					$shippingAmountExcl = $shippingDiff;
@@ -509,6 +510,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$shippingAmountExcl = $originalShippingAmount;
 					$shippingAmount = $shippingAmountExcl + $shippingTax;
 					$this->session->setDrShippingAndHandling($shippingAmount);	
+					$productTotal += $productTax;
 				}
 				
 				$this->session->setDrProductTotal($productTotal);
