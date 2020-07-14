@@ -114,7 +114,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                 if ($regionName) {
                     $countryId = $address->getCountryId();
                     $region = $this->regionModel->loadByName($regionName, $countryId);
-                    $state = $region->getCode();
+                    $state = $region->getCode()?:$regionName;
                 }
 
                 $shipping =  [
