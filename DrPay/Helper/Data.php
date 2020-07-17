@@ -926,7 +926,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 					$items = $creditmemo->getAllItems();
 					$itemDiscount = 0;
 					$baseItemDiscount = 0;
-					$totalRowTotalInclTax = 0;
 					$itemsData = array();
 					foreach($items as $item){
 						$rowTotalInclTax = $item->getRowTotal() + $item->getTaxAmount() + $item->getDiscountTaxCompensationAmount() - $item->getDiscountAmount();
@@ -936,8 +935,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 							$rowTotalInclTax = round($rowTotalInclTax, 2);
 							$drLineItemId = $item->getOrderItem()->getDrOrderLineitemId();
 							$itemsData[] = ["lineItemId" => $drLineItemId, "refundAmount" => ["value" => $rowTotalInclTax, "currency" => $currencyCode]];
-						}	
-						$totalRowTotalInclTax += $rowTotalInclTax;
+						}				
 					}
 					if(count($itemsData) > 0){
 						$data = ["type" => "productRefund", "category" => "PRODUCT_LEVEL_PRODUCT", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "lineItems" => $itemsData];
@@ -955,13 +953,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						if($itemDiscount > 0 && $creditmemo->getShippingInclTax() <= 0){
 							if($itemDiscount > abs($creditmemo->getDiscountAmount())){
 								$oldDiscount = abs($creditmemo->getDiscountAmount());
-								$baseOldDiscount = abs($creditmemo->getBaseDiscountAmount());
+								$baseOldDiscount = abs($creditmemo->getDiscountAmount());
 								$creditmemo->setDiscountAmount(-$itemDiscount);
 								$creditmemo->setBaseDiscountAmount(-$baseItemDiscount);		
 								$discountDiff = abs($creditmemo->getDiscountAmount()) - $oldDiscount;
 								$baseDiscountDiff = abs($creditmemo->getBaseDiscountAmount()) - $baseOldDiscount;
-								$creditmemo->setGrandTotal($totalRowTotalInclTax);
-								$creditmemo->setBaseGrandTotal($totalRowTotalInclTax);
+								$creditmemo->setGrandTotal($creditmemo->getGrandTotal() - $discountDiff);
+								$creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() - $baseDiscountDiff);
 							}
 						}
 					}
