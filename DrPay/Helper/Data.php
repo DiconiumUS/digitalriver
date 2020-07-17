@@ -925,10 +925,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 				}else{
 					$items = $creditmemo->getAllItems();
 					$itemDiscount = 0;
+					$baseItemDiscount = 0;
 					$itemsData = array();
 					foreach($items as $item){
 						$rowTotalInclTax = $item->getRowTotal() + $item->getTaxAmount() + $item->getDiscountTaxCompensationAmount() - $item->getDiscountAmount();
 						$itemDiscount += $item->getDiscountAmount();
+						$baseItemDiscount += $item->getBaseDiscountAmount();
 						if($rowTotalInclTax > 0){
 							$rowTotalInclTax = round($rowTotalInclTax, 2);
 							$drLineItemId = $item->getOrderItem()->getDrOrderLineitemId();
@@ -946,6 +948,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 						$data = ["type" => "orderRefund", "category" => "ORDER_LEVEL_SHIPPING", "reason" => "VENDOR_APPROVED_REFUND", "comments" => "Unhappy with the product", "refundAmount" => ["currency" => $currencyCode, "value" => $shippingAmount]];
 						$response = $this->curlRefundRequest($order->getDrOrderId(), $data, $token, $storeCode);
 						if(!$response) return $response;
+					}
+					if($order->hasCreditmemos() && $order->getShippingDiscountAmount() > 0){
+						if($itemDiscount > 0 && $creditmemo->getShippingInclTax() <= 0){
+							if($itemDiscount > abs($creditmemo->getDiscountAmount())){
+								$oldDiscount = abs($creditmemo->getDiscountAmount());
+								$baseOldDiscount = abs($creditmemo->getDiscountAmount());
+								$creditmemo->setDiscountAmount(-$itemDiscount);
+								$creditmemo->setBaseDiscountAmount(-$baseItemDiscount);		
+								$discountDiff = abs($creditmemo->getDiscountAmount()) - $oldDiscount;
+								$baseDiscountDiff = abs($creditmemo->getBaseDiscountAmount()) - $baseOldDiscount;
+								$creditmemo->setGrandTotal($creditmemo->getGrandTotal() - $discountDiff);
+								$creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() - $baseDiscountDiff);
+							}
+						}
 					}
 				}
 				$flag = true;
