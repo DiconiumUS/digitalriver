@@ -97,6 +97,7 @@ class UpdateOrderDetails implements ObserverInterface
 						$productPriceSubTotalInclTax = 0;
 						$productPriceSubTotalExclTax = 0;
 						$productPriceExclTax = 0;
+						$productDiscount = 0;
 
 						foreach($customAttributes as $customAttribute) {
 							if($customAttribute["name"] == "magento_quote_item_id") {
@@ -111,10 +112,14 @@ class UpdateOrderDetails implements ObserverInterface
 							if($customAttribute["name"] == "productPriceExclTax") {
 								$productPriceExclTax = $customAttribute["value"];
 							}
+							if($customAttribute["name"] == "productDiscount") {
+								$productDiscount = $customAttribute["value"];
+							}
 						}
 						$item['productPriceExclTax'] = $productPriceExclTax;
 						$item['productPriceSubTotalInclTax'] = $productPriceSubTotalInclTax;
 						$item['productPriceSubTotalExclTax'] = $productPriceSubTotalExclTax;
+						$item['productDiscount'] = $productDiscount;
 
 						// if the DR cart's magento_quote_item_id == magentoItemId, then update the Items details
 						if($drItemMagentoRefId == $magentoItemId){
@@ -134,6 +139,9 @@ class UpdateOrderDetails implements ObserverInterface
 				$order->setSubtotal($this->priceCurrency->round($subtotal));
 				$order->setBaseSubtotal($this->priceCurrency->round(($this->convertToBaseCurrency($subtotal))));
 				$order->setBaseShippingAmount($this->priceCurrency->round(($this->convertToBaseCurrency($order->getShippingAmount()))));
+
+				// set the shipping tax compensation amount
+				
 			}
 			else {
 				$order->setSubtotalInclTax($this->priceCurrency->round($order->getSubtotal() + $this->session->getDrProductTax()));
@@ -173,18 +181,27 @@ class UpdateOrderDetails implements ObserverInterface
 				$orderitem->setTaxPercent($listprice["taxRate"] * 100);
 			}
 			if($tax_inclusive){
-				// compensation is requried to adjust the Row Total column in the order details lineitems. This does not impact the GC order.
-				//$orderitem->setDiscountTaxCompensationAmount(0); 
-				//$orderitem->setBaseDiscountTaxCompensationAmount(0);
 				
+				$subTotalInclTax = $item['pricing']['salePriceWithQuantity']['value'] + $item['productDiscount'];
+				$subTotalExclTax = $subTotalInclTax - $item['pricing']['productTax']['value'];
+				// determine the adjusted compensation based on the response from GC
+				$compensation = 0;
+				if($item['productDiscount'] > 0) {
+					$compensation = abs($item['productPriceSubTotalExclTax'] - $subTotalExclTax);
+					$subTotalExclTax -= $compensation;
+				}
 				$orderitem->setPrice($item['productPriceExclTax']);
-				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));
+				$orderitem->setBasePrice($this->convertToBaseCurrency($orderitem->getPrice()));				
 
-				$orderitem->setRowTotal($this->priceCurrency->round($item['productPriceSubTotalExclTax']));
+				$orderitem->setRowTotal($this->priceCurrency->round($subTotalExclTax));
 				$orderitem->setBaseRowTotal($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotal())));
 				
-				$orderitem->setRowTotalInclTax($this->priceCurrency->round($item['productPriceSubTotalInclTax']));
+				$orderitem->setRowTotalInclTax($this->priceCurrency->round($subTotalInclTax));
 				$orderitem->setBaseRowTotalInclTax($this->priceCurrency->round($this->convertToBaseCurrency($orderitem->getRowTotalInclTax())));
+
+				// compensation is required to adjust the Row Total column in the order details lineitems based on the GC calculations.
+				$orderitem->setDiscountTaxCompensationAmount($this->priceCurrency->round($compensation)); 
+				$orderitem->setBaseDiscountTaxCompensationAmount($this->priceCurrency->round($this->convertToBaseCurrency($compensation)));
 			}
 		}
 	}
