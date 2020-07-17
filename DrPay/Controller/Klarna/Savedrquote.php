@@ -69,12 +69,13 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
             $taxAmnt = 0;
             $shipAmnt = 0;
 			$tax_inclusive = $this->scopeConfig->getValue('tax/calculation/price_includes_tax', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            foreach ($quote->getAllVisibleItems() as $item) {
+			$lineitems = $cartResult['cart']['lineItems']['lineItem'];
+            foreach ($lineitems as $lineitem) {
                 $itemsArr[] = [
-                    'name' => $item->getName(),
-                    'quantity' => $item->getQty(),
-                    'unitAmount' => $tax_inclusive ? $item->getPriceInclTax() : round($item->getCalculationPrice(), 2),
-                    'taxRate' => 0,
+                    'name' => $lineitem['product']['displayName'],
+                    'quantity' => $lineitem['quantity'],
+                    'unitAmount' => $lineitem['pricing']['listPrice']['value'],
+                    'taxRate' => $lineitem['pricing']['taxRate'],
                 ];
             }
             $address = $quote->getShippingAddress();
@@ -93,12 +94,8 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
 						}
 					}
 				}
-                $shipAmnt = $address->getShippingAmount() ? $address->getShippingAmount() : 0;
-                $taxAmnt = $address->getTaxAmount() ? $address->getTaxAmount() : 0;
-				if($tax_inclusive){
-					$shipAmnt = $address->getShippingInclTax() ? $address->getShippingInclTax() : 0;		
-					$taxAmnt = 0;
-				}
+                $shipAmnt = $cartResult['cart']['pricing']['shippingAndHandling']['value'];
+                $taxAmnt = $cartResult['cart']['pricing']['tax']['value'];
                 $shipping =  [];
                 $street = $address->getStreet();
                 if (isset($street[0])) {
@@ -176,8 +173,8 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
                     'returnUrl' => $returnurl,
                     'cancelUrl' => $cancelurl,
                     'items' => $itemsArr,
-                    'taxAmount' => 0,
-                    'shippingAmount' => round($shipAmnt, 2) + round($taxAmnt, 2),
+                    'taxAmount' => ($tax_inclusive) ? 0 : $cartResult['cart']['pricing']['tax']['value'],
+                    'shippingAmount' => $cartResult['cart']['pricing']['shippingAndHandling']['value'],
                     'requestShipping' => true,
                     'shipping' => $shipping,
                 ],
