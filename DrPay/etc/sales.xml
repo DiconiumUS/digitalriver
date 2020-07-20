@@ -10,6 +10,21 @@
     <section name="quote">
         <group name="totals">
             <item name="dr_tax" instance="Digitalriver\DrPay\Model\Total\Quote\DrTax" sort_order="750"/>
+            <item name="subtotal">
+                <renderer name="frontend" instance="Digitalriver\DrPay\Block\Checkout\Subtotal"/>
+            </item>
+            <item name="shipping">
+                <renderer name="frontend" instance="Digitalriver\DrPay\Block\Checkout\Shipping"/>
+            </item>
+            <item name="discount">
+                <renderer name="frontend" instance="Digitalriver\DrPay\Block\Checkout\Discount"/>
+            </item>
+            <item name="tax">
+                <renderer name="frontend" instance="Digitalriver\DrPay\Block\Checkout\Tax"/>
+            </item>
+            <item name="grand_total">
+                <renderer name="frontend" instance="Digitalriver\DrPay\Block\Checkout\Grandtotal"/>
+            </item>
         </group>
     </section>
 </config>

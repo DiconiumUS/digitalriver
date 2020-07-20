@@ -1,0 +1,258 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * @var \Digitalriver\DrPay\Block\Checkout\Review $block
+ */
+
+$quote = $block->getQuote();
+?>
+<div id="checkout" data-bind="scope:'checkout'" class="checkout-container">
+    <ul class="opc-progress-bar">
+        <li class="opc-progress-bar-item _active">
+            <span><?= $block->escapeHtml(__('Review')); ?></span>
+        </li>
+    </ul>
+
+    <div class="opc-wrapper">
+        <ol class="opc" id="checkoutSteps">
+            <li id="payment" role="presentation" class="checkout-payment-method" style="display: list-item;">
+                <div id="checkout-step-payment" class="step-content" data-role="content" role="tabpanel" aria-hidden="false" style="background: rgb(230, 230, 230);">
+                    <form id="co-payment-form" class="form payments" action="<?= $block->escapeUrl($block->getUrl('drpay/review/success'));?>" method="post">
+                        <input type="hidden" name="form_key" value="">
+                        <fieldset class="fieldset">
+                            <div id="checkout-payment-method-load" class="opc-payment" style="">
+                                <div class="items payment-methods">
+                                    <div class="payment-group" data-repeat-index="0">
+                                        <div class="payment-method _active">
+                                            <div class="payment-method-content" style="margin-bottom: 50px;">
+                                                <div id="payment-data_paypal" class="payment-active" style="display: block;">
+                                                    <div class="title">
+                                                        <?= $block->escapeHtml($block->getPaymentMethodTitle()) ?>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div data-role="checkout-messages" class="messages"></div>
+
+                                                <div class="payment-method-billing-address">
+                                                    <div class="checkout-billing-address">
+                                                        <div class="billing-address-details">
+                                                            <address>
+                                                                <?= $block->escapeHtml(
+                                                                    $block->renderAddress($block->getBillingAddress()),
+                                                                    ['br']
+                                                                );?>
+                                                            </address>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="sourceId" value="<?php echo base64_encode($this->getRequest()->getParam('sourceId')); ?>">
+                                                <div class="actions-toolbar">
+                                                    <div class="primary paypal-btn-second" style="display: block; margin-right: 10px;">
+                                                        <button class="action primary checkout" type="submit" onclick="jQuery('body').trigger('processStart');" style="line-height: 2.2rem; padding: 14px 17px; font-size: 1.8rem;">
+                                                            <span><?php echo $block->escapeHtml(__('Place Your Order')); ?></span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+            </li>
+        </ol>
+    </div>
+   
+    <aside role="dialog" class="modal-custom opc-sidebar opc-summary-wrapper custom-slide" aria-describedby="modal-content-14" data-role="modal" data-type="custom" tabindex="0" style="margin-top:0;">
+        <div data-role="focusable-start" tabindex="0"></div>
+        <div class="modal-inner-wrap" data-role="focusable-scope">
+            <header class="modal-header">
+                <button class="action-close" data-role="closeBtn" type="button"><span>Close</span></button>
+            </header>
+            <div id="modal-content-14" class="modal-content" data-role="content">
+                <div id="opc-sidebar" data-bind="afterRender:setModalElement, mageInit: {
+                'Magento_Ui/js/modal/modal':{
+                    'type': 'custom',
+                    'modalClass': 'opc-sidebar opc-summary-wrapper',
+                    'wrapperClass': 'checkout-container',
+                    'parentModalClass': '_has-modal-custom',
+                    'responsive': true,
+                    'responsiveClass': 'custom-slide',
+                    'overlayClass': 'modal-custom-overlay',
+                    'buttons': []
+                }}">
+
+                    <div class="opc-block-summary">
+                        <span class="title"><?php echo $block->escapeHtml(__('Order Summary')); ?></span>
+                        <table class="data table table-totals">
+                            <caption class="table-caption"><?php echo $block->escapeHtml(__('Order Summary')); ?></caption>
+                            <tbody>
+                                <?= $block->getChildHtml('review_totals'); ?>
+                            </tbody>
+                        </table>
+                        
+                        <div class="block items-in-cart">
+                            <div class="title" aria-selected="false" aria-expanded="false" tabindex="0" onclick="javascript:toggleContent('.content.minicart-items');">
+                                <strong role="heading" aria-level="1">
+                                    <?php 
+                                    $itemsSummary   = intval($quote->getItemsQty());
+                                    $itemsText      = ($itemsSummary == 1)?' Item in Cart':' Items in Cart';
+                                    ?>
+                                    <span><?php echo isset($itemsSummary)?$itemsSummary:0; ?></span>
+                                    <span><?php echo $block->escapeHtml(__($itemsText)); ?></span>
+                                </strong>
+                            </div>
+                            <div class="content minicart-items" data-role="content" role="tabpanel" aria-hidden="true" style="display: none;">
+                                <div class="minicart-items-wrapper overflowed">
+                                    <ol class="minicart-items">
+                                    <?php
+                                    $taxDataHelper = $this->helper(Magento\Tax\Helper\Data::class);
+                                    foreach ($quote->getItems() as $item):
+                                        $blockObj= $block->getLayout()->createBlock('Magento\Checkout\Block\Cart\Item\Renderer');
+                                        $blockObj->setItem($item);
+                                        $_item = $blockObj->getItem();
+                                        $_options = $block->getItemOptions($_item);
+                                    ?>
+                                        <li class="product-item">
+                                            <div class="product">
+                                                <span class="product-image-container" style="height: 75px; width: 75px;">
+                                                    <span class="product-image-wrapper">
+                                                        <?= $blockObj->getImage($blockObj->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml() ?>
+                                                    </span>
+                                                </span>
+
+                                                <div class="product-item-details">
+                                                    <div class="product-item-inner">
+                                                        <div class="product-item-name-block">
+                                                            <strong class="product-item-name"><?= $blockObj->escapeHtml($blockObj->getProductName()) ?></strong>
+                                                            <div class="details-qty">
+                                                                <span class="label"><span><?php echo $block->escapeHtml(__('Qty')); ?></span></span>
+                                                                <span class="value"><?= $blockObj->escapeHtml($_item->getQty()) ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="subtotal">
+                                                            <span class="price-excluding-tax" data-label="<?php echo $block->escapeHtmlAttr(__('Excl. Tax')); ?>;">
+                                                                <span class="cart-price">
+                                                                    <span class="price">
+                                                                    <?php if ($taxDataHelper->displayCartPriceInclTax() || $taxDataHelper->displayCartBothPrices()) :?>
+                                                                        <span class="price-including-tax" data-label="<?= $blockObj->escapeHtmlAttr(__('Incl. Tax')) ?>">
+                                                                            <?= $blockObj->getRowTotalInclTaxHtml($_item) ?>
+                                                                        </span>
+                                                                    <?php endif; ?>
+                                                                    <?php if ($taxDataHelper->displayCartPriceExclTax() || $taxDataHelper->displayCartBothPrices()) :?>
+                                                                        <span class="price-excluding-tax" data-label="<?= $blockObj->escapeHtmlAttr(__('Excl. Tax')) ?>">
+                                                                            <?= $blockObj->getRowTotalExclTaxHtml($_item) ?>
+                                                                        </span>
+                                                                    <?php endif; ?>
+                                                                    </span>
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <?php if ($_options) :?>
+                                                    <div class="product options" onclick="javascript:toggleOptions(this);">
+                                                        <span data-role="title" class="toggle" aria-selected="false" aria-expanded="false" tabindex="0"><span><?php echo $block->escapeHtmlAttr(__('View Details')); ?></span></span>
+                                                        <div data-role="content" class="content view-details" aria-hidden="true" style="display: none;">
+                                                            <strong class="subtitle"><span><?php echo $block->escapeHtmlAttr(__('Options Details')); ?></span></strong>
+                                                            <dl class="item-options">
+                                                                <?php foreach ($_options as $_option) :?>
+                                                                    <?php $_formatedOptionValue = $blockObj->getFormatedOptionValue($_option) ?>
+                                                                    <dt><?= $blockObj->escapeHtml($_option['label']) ?></dt>
+                                                                    <dd>
+                                                                        <?php if (isset($_formatedOptionValue['full_view'])) :?>
+                                                                            <?= /* @noEscape */ $_formatedOptionValue['full_view'] ?>
+                                                                        <?php else :?>
+                                                                            <?= /* @noEscape */ $_formatedOptionValue['value'] ?>
+                                                                        <?php endif; ?>
+                                                                    </dd>
+                                                                <?php endforeach; ?>
+                                                            </dl>
+                                                        </div>
+                                                    </div>
+                                                    <?php endif;?>
+                                                    <?php if ($addtInfoBlock = $blockObj->getProductAdditionalInformationBlock()) :?>
+                                                        <?= $addtInfoBlock->setItem($_item)->toHtml() ?>
+                                                    <?php endif;?>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    <?php endforeach ?>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if ($block->getShippingAddress()) : ?>
+                    <div class="opc-block-shipping-information">
+                        <div class="shipping-information">
+                            <div class="ship-to">
+                                <div class="shipping-information-title">
+                                    <span><?php echo $block->escapeHtml(__('Ship To:')); ?></span>
+                                </div>
+                                <div class="shipping-information-content">   
+                                    <?php /* shipping address */ ?>
+                                    <address>
+                                        <?= $block->escapeHtml(
+                                            $block->renderAddress($block->getShippingAddress()),
+                                            ['br']
+                                        );?>
+                                    </address>
+                                </div>
+                            </div>
+                            <div class="ship-via">
+                                <div class="shipping-information-title">
+                                    <span><?php echo $block->escapeHtml(__('Shipping Method:')); ?></span>
+                                </div>
+                                <div class="shipping-information-content">
+                                    <span class="value"><p><?= $block->escapeHtml($quote->getShippingAddress()->getShippingDescription()); ?></p></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <div data-role="focusable-end" tabindex="0"></div>
+    </aside>
+</div>
+<style type="text/css">
+    .opc-block-summary .items-in-cart.active>.title:after,
+    .minicart-items .product .toggle.active:after {
+        content: '\e621';
+    }
+</style>
+<script type="text/javascript">
+function toggleContent(targetElement) {
+    require(["jquery"], function ($) {
+        $('.content.view-details').hide(); 
+
+        if($(targetElement).is(':visible'))
+            $('.opc-block-summary .items-in-cart').removeClass('active');
+        else
+            $('.opc-block-summary .items-in-cart').addClass('active');
+
+        $(targetElement).toggle(); 
+    });
+}
+
+function toggleOptions(targetElement) {
+    require(["jquery"], function ($) { 
+        if ($(targetElement).find('.content.view-details').is(':visible')) {
+            $(targetElement).find('.content.view-details').hide();
+            $('.minicart-items .product .toggle').removeClass('active');
+        } else {
+            $('.content.view-details').hide();
+            $('.minicart-items .product .toggle').addClass('active');            
+            $(targetElement).find('.content.view-details').show();
+        };
+    });
+}
+</script>

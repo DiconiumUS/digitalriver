@@ -1,0 +1,55 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// phpcs:disable Magento2.Templates.ThisInTemplate
+
+/**
+ * @var $block \Digitalriver\DrPay\Block\Checkout\Shipping
+ * @see \Magento\Tax\Block\Checkout\Shipping
+ */
+?>
+<?php if ($block->displayShipping()) : ?>
+    <?php
+        $style = $block->escapeHtmlAttr($block->getStyle());
+        $colspan = (int) $block->getColspan();
+    ?>
+    <?php if ($block->displayBoth()) : ?>
+    <tr class="totals shipping excl">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <?= $block->escapeHtml($block->getExcludeTaxLabel()) ?><br/><?= $block->escapeHtml($block->getShippingDescription()) ?>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getExcludeTaxLabel()).' '.$block->escapeHtml($block->getShippingDescription()) ?>">
+            <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getShippingExcludeTax()) ?>
+        </td>
+    </tr>
+    <tr class="totals shipping incl">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <?= $block->escapeHtml($block->getIncludeTaxLabel()) ?><br/><?= $block->escapeHtml($block->getShippingDescription()) ?>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr($block->getIncludeTaxLabel()).' '.$block->escapeHtml($block->getShippingDescription()) ?>">
+            <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getShippingIncludeTax()) ?>
+        </td>
+    </tr>
+    <?php elseif ($block->displayIncludeTax()) : ?>
+    <tr class="totals shipping incl">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <?= $block->escapeHtml(__('Shipping')) ?><br/><label style="color:#666;"><?= $block->escapeHtml($block->getShippingDescription()) ?></label>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Shipping')).' '.$block->escapeHtml($block->getShippingDescription()) ?>">
+            <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getShippingIncludeTax()) ?>
+        </td>
+    </tr>
+    <?php else : ?>
+    <tr class="totals shipping excl">
+        <th style="<?= /* @noEscape */ $style ?>" class="mark" colspan="<?= /* @noEscape */ $colspan ?>" scope="row">
+            <?= $block->escapeHtml(__('Shipping')) ?><br/><label style="color:#666;"><?= $block->escapeHtml($block->getShippingDescription()) ?></label>
+        </th>
+        <td style="<?= /* @noEscape */ $style ?>" class="amount" data-th="<?= $block->escapeHtmlAttr(__('Shipping')).' '.$block->escapeHtml($block->getShippingDescription()) ?>">
+            <?= /* @noEscape */ $this->helper(\Magento\Checkout\Helper\Data::class)->formatPrice($block->getShippingExcludeTax()) ?>
+        </td>
+    </tr>
+    <?php endif; ?>
+<?php endif; ?>

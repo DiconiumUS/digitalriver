@@ -81,35 +81,9 @@ function loadScriptPayPal(url, callback){
 
 	function continuePaypalOrder()
 	{
-		require(["jquery"], function ($) {		
-			var edit = '<?php echo $block->escapeJs($block->escapeHtml(__('Edit')));?>';
-			var title = "<div class='title'>"+$(".payment-methods .payment-group .payment-method._active .payment-method-title .label span").html()+"</div>";
-			var editlink = "<a class='payment-edit' href='javascript:void(0)' id='payment-edit-paypal' onclick='displayPaypalForm()'>"+edit+"</a>";
-			$("#payment-data_paypal").html(title+editlink);						
-			$("#payment-data_paypal").css("display","block");
-			$("#payment-data_paypal").addClass('payment-active');
-			$(".paypal-btn-first").css("display","none");
-			$(".paypal-btn-second").css("display","block");
-			$(".paypal-btn-second .checkout").css("display","block");
-			$(".payment-methods .payment-group .step-title").css("display","none");
-			$(".payment-method._active .payment-method-content .payment-method-note").css("display","none");
-			$(".payment-methods .payment-group .payment-method .payment-method-title").css("display","none");
-			$(".payment-methods .payment-group .payment-method .details").css("display","none");
-			$(".payment-methods .payment-group .payment-method .payment-logos").css("display","none");
-			$(".payment-methods .payment-group .payment-method .payment-icon").css("display","none");
-			$(".payment-methods .payment-group .payment-method .payment-method-instruction").css("display","none");
-			$("#payframe").css("display","none");
-			$('.checkout-tabs .nav-pills li').removeClass('active');
-			$('.checkout-tabs .nav-pills li:nth-child(2)').addClass('active');
-			$('.step-content').css('background','#e6e6e6');
-			$('.payment-method-content').css('margin-bottom','50px');
-			if(window.checkoutConfig.quoteData.is_virtual){
-				$(".billing-address-details .action-edit-address").css("display","none");
-			}else{
-				$(".billing-address-details .action-edit-address").css("display","none");
-				$(".payment-method-billing-address .billing-address-same-as-shipping-block").css("display","none");
-			}
-		});		
+            require(["jquery"], function ($) {		
+                $('.primary.paypal-btn-second .action.primary.checkout').trigger('click');
+            });		
 	}	
 	function displayPaypalForm(){
 		jQuery(".payment-methods .payment-group .step-title").css("display","block");

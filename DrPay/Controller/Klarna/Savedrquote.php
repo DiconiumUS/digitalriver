@@ -59,7 +59,7 @@ class Savedrquote extends \Magento\Framework\App\Action\Action
         $cartResult = $this->helper->createFullCartInDr($quote, 1);
         if ($cartResult) {
             $payload = [];
-            $returnurl = $this->_url->getUrl('drpay/klarna/success');
+            $$returnurl = $this->_url->getUrl('drpay/review/index');
             $cancelurl = $this->_url->getUrl('drpay/klarna/cancel');
             $itemsArr = [];
             $shipping = [];

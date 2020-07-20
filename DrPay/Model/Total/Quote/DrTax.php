@@ -87,30 +87,6 @@ class DrTax extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 		}
         return $this;
     }
-    /**
-     * Fetch (Retrieve data as array)
-     *
-     * @param \Magento\Quote\Model\Quote $quote
-     * @param \Magento\Quote\Model\Quote\Address\Total $total
-     * @return array
-     * @internal param \Magento\Quote\Model\Quote\Address $address
-     */
-    public function fetch(\Magento\Quote\Model\Quote $quote, \Magento\Quote\Model\Quote\Address\Total $total)
-    {
-        $result = null;
-        $amount = $quote->getDrTax();
-        if ($amount == 0) {
-            $billingaddress = $quote->getBillingAddress();
-            $amount = $billingaddress->getTaxAmount();
-        }
-        $result = [
-            'code' => $this->getCode(),
-            'title' => __('Tax'),
-            'value' => $amount
-        ];
-        
-        return $result;
-    }
 
 	public function convertToBaseCurrency($price){
         $currentCurrency = $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
